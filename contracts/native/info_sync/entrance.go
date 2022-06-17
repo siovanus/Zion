@@ -113,7 +113,7 @@ func GetLatestHeight(s *native.NativeContract) ([]byte, error) {
 	}
 
 	height, err := iscommon.GetCurrentHeight(s, params.ChainID)
-    if err != nil { return nil, err }
+	if err != nil { return nil, err }
 	v := make([]byte, 4)
 	binary.LittleEndian.PutUint32(v, height)
 	return utils.PackOutputs(iscommon.ABI, iscommon.MethodGetLatestHeight, v)

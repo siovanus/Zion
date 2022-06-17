@@ -27,6 +27,10 @@ var (
 )
 
 var (
+	MethodGetInfo = "getInfo"
+
+	MethodGetLatestHeight = "getLatestHeight"
+
 	MethodSyncRootInfo = "syncRootInfo"
 
 	MethodName = "name"
@@ -35,10 +39,12 @@ var (
 )
 
 // InfoSyncABI is the input ABI used to generate the binding from.
-const InfoSyncABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"BlockHeight\",\"type\":\"uint256\"}],\"name\":\"SyncRootInfoEvent\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"bytes[]\",\"name\":\"rootInfos\",\"type\":\"bytes[]\"}],\"name\":\"syncRootInfo\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const InfoSyncABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"BlockHeight\",\"type\":\"uint256\"}],\"name\":\"SyncRootInfoEvent\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"}],\"name\":\"getInfo\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"}],\"name\":\"getLatestHeight\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"bytes[]\",\"name\":\"rootInfos\",\"type\":\"bytes[]\"}],\"name\":\"syncRootInfo\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // InfoSyncFuncSigs maps the 4-byte function signature to its string representation.
 var InfoSyncFuncSigs = map[string]string{
+	"6a4a9f5e": "getInfo(uint64,uint32)",
+	"3cb55d5e": "getLatestHeight(uint64)",
 	"06fdde03": "name()",
 	"48c8f119": "syncRootInfo(uint64,bytes[])",
 }
@@ -216,23 +222,65 @@ func (_InfoSync *InfoSyncCallerSession) Name() (string, error) {
 	return _InfoSync.Contract.Name(&_InfoSync.CallOpts)
 }
 
+// GetInfo is a paid mutator transaction binding the contract method 0x6a4a9f5e.
+//
+// Solidity: function getInfo(uint64 chainID, uint32 height) returns(bytes)
+func (_InfoSync *InfoSyncTransactor) GetInfo(opts *bind.TransactOpts, chainID uint64, height uint32) (*types.Transaction, error) {
+	return _InfoSync.contract.Transact(opts, "getInfo", chainID, height)
+}
+
+// GetInfo is a paid mutator transaction binding the contract method 0x6a4a9f5e.
+//
+// Solidity: function getInfo(uint64 chainID, uint32 height) returns(bytes)
+func (_InfoSync *InfoSyncSession) GetInfo(chainID uint64, height uint32) (*types.Transaction, error) {
+	return _InfoSync.Contract.GetInfo(&_InfoSync.TransactOpts, chainID, height)
+}
+
+// GetInfo is a paid mutator transaction binding the contract method 0x6a4a9f5e.
+//
+// Solidity: function getInfo(uint64 chainID, uint32 height) returns(bytes)
+func (_InfoSync *InfoSyncTransactorSession) GetInfo(chainID uint64, height uint32) (*types.Transaction, error) {
+	return _InfoSync.Contract.GetInfo(&_InfoSync.TransactOpts, chainID, height)
+}
+
+// GetLatestHeight is a paid mutator transaction binding the contract method 0x3cb55d5e.
+//
+// Solidity: function getLatestHeight(uint64 chainID) returns(uint32)
+func (_InfoSync *InfoSyncTransactor) GetLatestHeight(opts *bind.TransactOpts, chainID uint64) (*types.Transaction, error) {
+	return _InfoSync.contract.Transact(opts, "getLatestHeight", chainID)
+}
+
+// GetLatestHeight is a paid mutator transaction binding the contract method 0x3cb55d5e.
+//
+// Solidity: function getLatestHeight(uint64 chainID) returns(uint32)
+func (_InfoSync *InfoSyncSession) GetLatestHeight(chainID uint64) (*types.Transaction, error) {
+	return _InfoSync.Contract.GetLatestHeight(&_InfoSync.TransactOpts, chainID)
+}
+
+// GetLatestHeight is a paid mutator transaction binding the contract method 0x3cb55d5e.
+//
+// Solidity: function getLatestHeight(uint64 chainID) returns(uint32)
+func (_InfoSync *InfoSyncTransactorSession) GetLatestHeight(chainID uint64) (*types.Transaction, error) {
+	return _InfoSync.Contract.GetLatestHeight(&_InfoSync.TransactOpts, chainID)
+}
+
 // SyncRootInfo is a paid mutator transaction binding the contract method 0x48c8f119.
 //
-// Solidity: function syncRootInfo(uint64 chainID, bytes[] rootInfos) returns(bool success)
+// Solidity: function syncRootInfo(uint64 chainID, bytes[] rootInfos) returns(bool)
 func (_InfoSync *InfoSyncTransactor) SyncRootInfo(opts *bind.TransactOpts, chainID uint64, rootInfos [][]byte) (*types.Transaction, error) {
 	return _InfoSync.contract.Transact(opts, "syncRootInfo", chainID, rootInfos)
 }
 
 // SyncRootInfo is a paid mutator transaction binding the contract method 0x48c8f119.
 //
-// Solidity: function syncRootInfo(uint64 chainID, bytes[] rootInfos) returns(bool success)
+// Solidity: function syncRootInfo(uint64 chainID, bytes[] rootInfos) returns(bool)
 func (_InfoSync *InfoSyncSession) SyncRootInfo(chainID uint64, rootInfos [][]byte) (*types.Transaction, error) {
 	return _InfoSync.Contract.SyncRootInfo(&_InfoSync.TransactOpts, chainID, rootInfos)
 }
 
 // SyncRootInfo is a paid mutator transaction binding the contract method 0x48c8f119.
 //
-// Solidity: function syncRootInfo(uint64 chainID, bytes[] rootInfos) returns(bool success)
+// Solidity: function syncRootInfo(uint64 chainID, bytes[] rootInfos) returns(bool)
 func (_InfoSync *InfoSyncTransactorSession) SyncRootInfo(chainID uint64, rootInfos [][]byte) (*types.Transaction, error) {
 	return _InfoSync.Contract.SyncRootInfo(&_InfoSync.TransactOpts, chainID, rootInfos)
 }

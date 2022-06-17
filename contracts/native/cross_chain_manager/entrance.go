@@ -28,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/heco"
 	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/msc"
 	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/no_proof"
+	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/eth_common"
 	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/okex"
 	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/quorum"
 	"github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/zilliqa"
@@ -70,6 +71,8 @@ func GetChainHandler(router uint64) (scom.ChainHandler, error) {
 	switch router {
 	case utils.NO_PROOF_ROUTER:
 		return no_proof.NewNoProofHandler(), nil
+	case utils.ETH_COMMON_ROUTER:
+		return eth_common.NewHandler(), nil
 	case utils.BSC_ROUTER:
 		return bsc.NewHandler(), nil
 	case utils.ETH_ROUTER:

@@ -27,6 +27,8 @@ var (
 )
 
 var (
+	MethodCheckDone = "checkDone"
+
 	MethodGetInfo = "getInfo"
 
 	MethodGetLatestHeight = "getLatestHeight"
@@ -39,10 +41,11 @@ var (
 )
 
 // InfoSyncABI is the input ABI used to generate the binding from.
-const InfoSyncABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"BlockHeight\",\"type\":\"uint256\"}],\"name\":\"SyncRootInfoEvent\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"}],\"name\":\"getInfo\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"}],\"name\":\"getLatestHeight\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"bytes[]\",\"name\":\"rootInfos\",\"type\":\"bytes[]\"}],\"name\":\"syncRootInfo\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const InfoSyncABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"BlockHeight\",\"type\":\"uint256\"}],\"name\":\"SyncRootInfoEvent\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"crossChainID\",\"type\":\"bytes\"}],\"name\":\"checkDone\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"height\",\"type\":\"uint32\"}],\"name\":\"getInfo\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"}],\"name\":\"getLatestHeight\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainID\",\"type\":\"uint64\"},{\"internalType\":\"bytes[]\",\"name\":\"rootInfos\",\"type\":\"bytes[]\"}],\"name\":\"syncRootInfo\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // InfoSyncFuncSigs maps the 4-byte function signature to its string representation.
 var InfoSyncFuncSigs = map[string]string{
+	"1245f8d5": "checkDone(uint64,bytes)",
 	"6a4a9f5e": "getInfo(uint64,uint32)",
 	"3cb55d5e": "getLatestHeight(uint64)",
 	"06fdde03": "name()",
@@ -220,6 +223,27 @@ func (_InfoSync *InfoSyncSession) Name() (string, error) {
 // Solidity: function name() view returns(string)
 func (_InfoSync *InfoSyncCallerSession) Name() (string, error) {
 	return _InfoSync.Contract.Name(&_InfoSync.CallOpts)
+}
+
+// CheckDone is a paid mutator transaction binding the contract method 0x1245f8d5.
+//
+// Solidity: function checkDone(uint64 chainID, bytes crossChainID) returns(bool)
+func (_InfoSync *InfoSyncTransactor) CheckDone(opts *bind.TransactOpts, chainID uint64, crossChainID []byte) (*types.Transaction, error) {
+	return _InfoSync.contract.Transact(opts, "checkDone", chainID, crossChainID)
+}
+
+// CheckDone is a paid mutator transaction binding the contract method 0x1245f8d5.
+//
+// Solidity: function checkDone(uint64 chainID, bytes crossChainID) returns(bool)
+func (_InfoSync *InfoSyncSession) CheckDone(chainID uint64, crossChainID []byte) (*types.Transaction, error) {
+	return _InfoSync.Contract.CheckDone(&_InfoSync.TransactOpts, chainID, crossChainID)
+}
+
+// CheckDone is a paid mutator transaction binding the contract method 0x1245f8d5.
+//
+// Solidity: function checkDone(uint64 chainID, bytes crossChainID) returns(bool)
+func (_InfoSync *InfoSyncTransactorSession) CheckDone(chainID uint64, crossChainID []byte) (*types.Transaction, error) {
+	return _InfoSync.Contract.CheckDone(&_InfoSync.TransactOpts, chainID, crossChainID)
 }
 
 // GetInfo is a paid mutator transaction binding the contract method 0x6a4a9f5e.

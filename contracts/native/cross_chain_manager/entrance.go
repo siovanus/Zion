@@ -98,6 +98,16 @@ func Name(s *native.NativeContract) ([]byte, error) {
 	return utils.PackOutputs(scom.ABI, scom.MethodContractName, contractName)
 }
 
+func CheckDone(s *native.NativeContract) ([]byte, error) {
+	ctx := s.ContractRef().CurrentContext()
+	params := &scom.CheckDoneParam{}
+	if err := utils.UnpackMethod(scom.ABI, scom.MethodCheckDone, params, ctx.Payload); err != nil {
+		return nil, err
+	}
+	err := scom.CheckDoneTx(s, params.CrossChainID, params.SourceChainID)
+	return utils.PackOutputs(scom.ABI, scom.MethodCheckDone, err == scom.ErrTxAlreadyImported)
+}
+
 func ImportOuterTransfer(s *native.NativeContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &scom.EntranceParam{}

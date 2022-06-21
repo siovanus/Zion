@@ -15,7 +15,7 @@ contract cross_chain_manager {
         return success;
     }
 
-    function checkDone(uint64 chainID, bytes calldata crossChainID) external returns(bool success) {
+    function checkDone(uint64 chainID, bytes memory crossChainID) public view returns(bool success) {
         return success;
     }
     

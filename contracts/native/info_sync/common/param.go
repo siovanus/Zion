@@ -39,7 +39,7 @@ type GetInfoParam struct {
 	Height  uint32
 }
 
-type GetLatestHeightParam struct {
+type GetInfoHeightParam struct {
 	ChainID uint64
 }
 

@@ -29,7 +29,7 @@ import (
 var (
 	MethodContractName = info_sync_abi.MethodName
 	MethodSyncRootInfo = info_sync_abi.MethodSyncRootInfo
-	MethodGetLatestHeight = info_sync_abi.MethodGetLatestHeight
+	MethodGetInfoHeight = info_sync_abi.MethodGetInfoHeight
 	MethodGetInfo = info_sync_abi.MethodGetInfo
 )
 

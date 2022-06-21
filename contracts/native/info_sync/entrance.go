@@ -46,7 +46,7 @@ func RegisterInfoSyncContract(s *native.NativeContract) {
 
 	s.Register(iscommon.MethodContractName, Name)
 	s.Register(iscommon.MethodSyncRootInfo, SyncRootInfo)
-	s.Register(iscommon.MethodGetLatestHeight, GetLatestHeight)
+	s.Register(iscommon.MethodGetInfoHeight, GetInfoHeight)
 	s.Register(iscommon.MethodGetInfo, GetInfo)
 }
 
@@ -105,10 +105,10 @@ func SyncRootInfo(s *native.NativeContract) ([]byte, error) {
 	return utils.PackOutputs(iscommon.ABI, iscommon.MethodSyncRootInfo, true)
 }
 
-func GetLatestHeight(s *native.NativeContract) ([]byte, error) {
+func GetInfoHeight(s *native.NativeContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
-	params := &iscommon.GetLatestHeightParam{}
-	if err := utils.UnpackMethod(iscommon.ABI, iscommon.MethodGetLatestHeight, params, ctx.Payload); err != nil {
+	params := &iscommon.GetInfoHeightParam{}
+	if err := utils.UnpackMethod(iscommon.ABI, iscommon.MethodGetInfoHeight, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -116,7 +116,7 @@ func GetLatestHeight(s *native.NativeContract) ([]byte, error) {
 	if err != nil { return nil, err }
 	v := make([]byte, 4)
 	binary.LittleEndian.PutUint32(v, height)
-	return utils.PackOutputs(iscommon.ABI, iscommon.MethodGetLatestHeight, v)
+	return utils.PackOutputs(iscommon.ABI, iscommon.MethodGetInfoHeight, v)
 }
 
 func GetInfo(s *native.NativeContract) ([]byte, error) {

@@ -18,11 +18,11 @@ package core
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/modules/utils"
 	"math"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"

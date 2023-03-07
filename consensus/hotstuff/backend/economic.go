@@ -20,10 +20,10 @@ package backend
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/modules/economic"
+	"github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/contracts/native/economic"
-	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/log"
 )
@@ -65,7 +65,7 @@ func (s *backend) getRewardList(state *state.StateDB, height *big.Int) ([]*econo
 	if err != nil {
 		return nil, fmt.Errorf("encode reward input failed: %v", err)
 	}
-	enc, _, err := ref.NativeCall(caller, utils.EconomicContractAddress, payload)
+	enc, _, err := ref.ModuleCall(caller, utils.EconomicContractAddress, payload)
 	if err != nil {
 		return nil, fmt.Errorf("reward native call failed: %v", err)
 	}

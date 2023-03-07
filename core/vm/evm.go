@@ -18,16 +18,15 @@ package vm
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/holiman/uint256"
 	"math/big"
 	"sync/atomic"
 	"time"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/contracts/native"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/holiman/uint256"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -254,7 +253,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}(gas, time.Now())
 	}
 
-	isNativeTx := native.IsNativeContract(addr)
+	isNativeTx := modules.IsModuleContract(addr)
 	if isNativeTx {
 		ret, gas, err = evm.nativeCall(caller.Address(), addr, input, gas, value)
 	} else {
@@ -440,11 +439,11 @@ func (evm *EVM) nativeCall(caller, toContract common.Address, input []byte, supp
 	txHash := evm.TxContext.TxHash
 	msgSender := evm.TxContext.Origin
 
-	contractRef := native.NewContractRef(sdb, msgSender, caller, blockNumber, txHash, suppliedGas, evm.Callback)
+	contractRef := modules.NewContractRef(sdb, msgSender, caller, blockNumber, txHash, suppliedGas, evm.Callback)
 	contractRef.SetValue(value)
 	contractRef.SetTo(toContract)
 
-	ret, leftOverGas, err = contractRef.NativeCall(caller, toContract, input)
+	ret, leftOverGas, err = contractRef.ModuleCall(caller, toContract, input)
 	return
 }
 

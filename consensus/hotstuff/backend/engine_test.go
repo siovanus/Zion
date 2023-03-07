@@ -19,6 +19,7 @@
 package backend
 
 import (
+	"github.com/ethereum/go-ethereum/modules/boot"
 	"math/big"
 	"os"
 	"reflect"
@@ -31,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff"
 	tu "github.com/ethereum/go-ethereum/consensus/hotstuff/testutils"
-	"github.com/ethereum/go-ethereum/contracts/native/boot"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"

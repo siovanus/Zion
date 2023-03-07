@@ -22,6 +22,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/modules/utils"
 	"math"
 	"math/big"
 	"sync"
@@ -31,8 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff/validator"
-	"github.com/ethereum/go-ethereum/contracts/native"
-	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -93,10 +93,10 @@ func (s *backend) getSystemMessage(toAddress common.Address, data []byte, value 
 }
 
 // getSystemCaller use fixed systemCaller as contract caller, and tx hash is useless in contract call.
-func (s *backend) getSystemCaller(state *state.StateDB, height *big.Int) *native.ContractRef {
+func (s *backend) getSystemCaller(state *state.StateDB, height *big.Int) *modules.ContractRef {
 	caller := utils.SystemTxSender
 	hash := common.EmptyHash
-	return native.NewContractRef(state, caller, caller, height, hash, systemGas, nil)
+	return modules.NewContractRef(state, caller, caller, height, hash, systemGas, nil)
 }
 
 // applyTransaction execute transaction without miner worker, and only succeed tx will be packed in block.

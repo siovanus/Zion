@@ -20,13 +20,13 @@ package backend
 
 import (
 	"fmt"
+	node_manager2 "github.com/ethereum/go-ethereum/modules/node_manager"
+	"github.com/ethereum/go-ethereum/modules/utils"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff"
-	nm "github.com/ethereum/go-ethereum/contracts/native/governance/node_manager"
-	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
@@ -34,7 +34,7 @@ import (
 
 var (
 	contractAddr = utils.NodeManagerContractAddress
-	specMethod   = nm.GetSpecMethodID()
+	specMethod   = node_manager2.GetSpecMethodID()
 )
 
 // FillHeader fulfill the header with validators for miner worker. there are 2 conditions:
@@ -152,7 +152,7 @@ func (s *backend) execEpochChange(state *state.StateDB, header *types.Header, ct
 		return nil
 	}
 
-	payload, err := new(nm.ChangeEpochParam).Encode()
+	payload, err := new(node_manager2.ChangeEpochParam).Encode()
 	if err != nil {
 		return err
 	}
@@ -165,8 +165,8 @@ func (s *backend) execEpochChange(state *state.StateDB, header *types.Header, ct
 }
 
 // getGovernanceInfo call governance contract method and retrieve related info.
-func (s *backend) getGovernanceInfo(state *state.StateDB) (*nm.EpochInfo, error) {
-	epoch, err := nm.GetCurrentEpochInfoFromDB(state)
+func (s *backend) getGovernanceInfo(state *state.StateDB) (*node_manager2.EpochInfo, error) {
+	epoch, err := node_manager2.GetCurrentEpochInfoFromDB(state)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (s *backend) getGovernanceInfo(state *state.StateDB) (*nm.EpochInfo, error)
 
 // execEndBlock execute governance contract method of `EndBlock`
 func (s *backend) execEndBlock(ctx *systemTxContext) error {
-	payload, err := new(nm.EndBlockParam).Encode()
+	payload, err := new(node_manager2.EndBlockParam).Encode()
 	if err != nil {
 		return err
 	}

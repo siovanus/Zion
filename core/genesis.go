@@ -22,13 +22,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/modules"
 	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/contracts/native"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -295,7 +295,7 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		g.checkExtra()
 		g.checkGovernance()
 		g.mintNativeToken(statedb)
-		for _, v := range native.NativeContractAddrMap {
+		for _, v := range modules.ModuleContractAddrMap {
 			g.createNativeContract(statedb, v)
 		}
 		RegGenesis(statedb, g)

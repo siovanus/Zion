@@ -21,11 +21,10 @@ package proposal_manager
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/modules"
 	"github.com/ethereum/go-ethereum/modules/helper"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 )
@@ -40,7 +39,7 @@ const (
 	SKP_COMMUNITY_PROPOSAL_LIST = "st_community_proposal_list"
 )
 
-func getProposalID(s *modules.ModuleContract) (*big.Int, error) {
+func getProposalID(s *contract.ModuleContract) (*big.Int, error) {
 	proposalID := new(big.Int)
 	key := proposalIDKey()
 	store, err := get(s, key)
@@ -53,12 +52,12 @@ func getProposalID(s *modules.ModuleContract) (*big.Int, error) {
 	return new(big.Int).SetBytes(store), nil
 }
 
-func setProposalID(s *modules.ModuleContract, proposalID *big.Int) {
+func setProposalID(s *contract.ModuleContract, proposalID *big.Int) {
 	key := proposalIDKey()
 	set(s, key, proposalID.Bytes())
 }
 
-func getProposalList(s *modules.ModuleContract) (*ProposalList, error) {
+func getProposalList(s *contract.ModuleContract) (*ProposalList, error) {
 	proposalList := &ProposalList{
 		make([]*big.Int, 0),
 	}
@@ -76,7 +75,7 @@ func getProposalList(s *modules.ModuleContract) (*ProposalList, error) {
 	return proposalList, nil
 }
 
-func setProposalList(s *modules.ModuleContract, proposalList *ProposalList) error {
+func setProposalList(s *contract.ModuleContract, proposalList *ProposalList) error {
 	key := proposalListKey()
 	store, err := rlp.EncodeToBytes(proposalList)
 	if err != nil {
@@ -86,7 +85,7 @@ func setProposalList(s *modules.ModuleContract, proposalList *ProposalList) erro
 	return nil
 }
 
-func removeFromProposalList(s *modules.ModuleContract, ID *big.Int) error {
+func removeFromProposalList(s *contract.ModuleContract, ID *big.Int) error {
 	proposalList, err := getProposalList(s)
 	if err != nil {
 		return fmt.Errorf("removeFromProposalList, getProposalList error: %v", err)
@@ -107,7 +106,7 @@ func removeFromProposalList(s *modules.ModuleContract, ID *big.Int) error {
 	return nil
 }
 
-func removeExpiredFromProposalList(s *modules.ModuleContract) error {
+func removeExpiredFromProposalList(s *contract.ModuleContract) error {
 	communityInfo, err := node_manager.GetCommunityInfoImpl(s)
 	if err != nil {
 		return fmt.Errorf("removeExpiredFromProposalList, node_manager.GetCommunityInfoImpl error: %v", err)
@@ -146,7 +145,7 @@ func removeExpiredFromProposalList(s *modules.ModuleContract) error {
 	return nil
 }
 
-func getConfigProposalList(s *modules.ModuleContract) (*ConfigProposalList, error) {
+func getConfigProposalList(s *contract.ModuleContract) (*ConfigProposalList, error) {
 	configProposalList := &ConfigProposalList{
 		make([]*big.Int, 0),
 	}
@@ -164,7 +163,7 @@ func getConfigProposalList(s *modules.ModuleContract) (*ConfigProposalList, erro
 	return configProposalList, nil
 }
 
-func setConfigProposalList(s *modules.ModuleContract, configProposalList *ConfigProposalList) error {
+func setConfigProposalList(s *contract.ModuleContract, configProposalList *ConfigProposalList) error {
 	key := configProposalListKey()
 	store, err := rlp.EncodeToBytes(configProposalList)
 	if err != nil {
@@ -174,7 +173,7 @@ func setConfigProposalList(s *modules.ModuleContract, configProposalList *Config
 	return nil
 }
 
-func cleanConfigProposalList(s *modules.ModuleContract) error {
+func cleanConfigProposalList(s *contract.ModuleContract) error {
 	err := setConfigProposalList(s, &ConfigProposalList{make([]*big.Int, 0)})
 	if err != nil {
 		return fmt.Errorf("cleanConfigProposalList, setConfigProposalList error: %v", err)
@@ -182,7 +181,7 @@ func cleanConfigProposalList(s *modules.ModuleContract) error {
 	return nil
 }
 
-func removeExpiredFromConfigProposalList(s *modules.ModuleContract) error {
+func removeExpiredFromConfigProposalList(s *contract.ModuleContract) error {
 	communityInfo, err := node_manager.GetCommunityInfoImpl(s)
 	if err != nil {
 		return fmt.Errorf("removeExpiredFromConfigProposalList, node_manager.GetCommunityInfoImpl error: %v", err)
@@ -221,7 +220,7 @@ func removeExpiredFromConfigProposalList(s *modules.ModuleContract) error {
 	return nil
 }
 
-func getCommunityProposalList(s *modules.ModuleContract) (*CommunityProposalList, error) {
+func getCommunityProposalList(s *contract.ModuleContract) (*CommunityProposalList, error) {
 	communityProposalList := &CommunityProposalList{
 		make([]*big.Int, 0),
 	}
@@ -239,7 +238,7 @@ func getCommunityProposalList(s *modules.ModuleContract) (*CommunityProposalList
 	return communityProposalList, nil
 }
 
-func setCommunityProposalList(s *modules.ModuleContract, communityProposalList *CommunityProposalList) error {
+func setCommunityProposalList(s *contract.ModuleContract, communityProposalList *CommunityProposalList) error {
 	key := communityProposalListKey()
 	store, err := rlp.EncodeToBytes(communityProposalList)
 	if err != nil {
@@ -249,7 +248,7 @@ func setCommunityProposalList(s *modules.ModuleContract, communityProposalList *
 	return nil
 }
 
-func cleanCommunityProposalList(s *modules.ModuleContract) error {
+func cleanCommunityProposalList(s *contract.ModuleContract) error {
 	err := setCommunityProposalList(s, &CommunityProposalList{make([]*big.Int, 0)})
 	if err != nil {
 		return fmt.Errorf("cleanCommunityProposalList, setCommunityProposalList error: %v", err)
@@ -257,7 +256,7 @@ func cleanCommunityProposalList(s *modules.ModuleContract) error {
 	return nil
 }
 
-func removeExpiredFromCommunityProposalList(s *modules.ModuleContract) error {
+func removeExpiredFromCommunityProposalList(s *contract.ModuleContract) error {
 	communityInfo, err := node_manager.GetCommunityInfoImpl(s)
 	if err != nil {
 		return fmt.Errorf("removeExpiredFromCommunityProposalList, node_manager.GetCommunityInfoImpl error: %v", err)
@@ -296,7 +295,7 @@ func removeExpiredFromCommunityProposalList(s *modules.ModuleContract) error {
 	return nil
 }
 
-func getProposal(s *modules.ModuleContract, ID *big.Int) (*Proposal, error) {
+func getProposal(s *contract.ModuleContract, ID *big.Int) (*Proposal, error) {
 	proposal := new(Proposal)
 	key := proposalKey(ID)
 	store, err := get(s, key)
@@ -309,7 +308,7 @@ func getProposal(s *modules.ModuleContract, ID *big.Int) (*Proposal, error) {
 	return proposal, nil
 }
 
-func setProposal(s *modules.ModuleContract, proposal *Proposal) error {
+func setProposal(s *contract.ModuleContract, proposal *Proposal) error {
 	key := proposalKey(proposal.ID)
 	store, err := rlp.EncodeToBytes(proposal)
 	if err != nil {
@@ -325,15 +324,15 @@ func setProposal(s *modules.ModuleContract, proposal *Proposal) error {
 //
 // ====================================================================
 
-func get(s *modules.ModuleContract, key []byte) ([]byte, error) {
+func get(s *contract.ModuleContract, key []byte) ([]byte, error) {
 	return customGet(s.GetCacheDB(), key)
 }
 
-func set(s *modules.ModuleContract, key, value []byte) {
+func set(s *contract.ModuleContract, key, value []byte) {
 	customSet(s.GetCacheDB(), key, value)
 }
 
-func del(s *modules.ModuleContract, key []byte) {
+func del(s *contract.ModuleContract, key []byte) {
 	customDel(s.GetCacheDB(), key)
 }
 
@@ -363,21 +362,21 @@ func customDel(db *state.CacheDB, key []byte) {
 // ====================================================================
 
 func proposalIDKey() []byte {
-	return utils.ConcatKey(this, []byte(SKP_PROPOSAL_ID))
+	return contract.ConcatKey(this, []byte(SKP_PROPOSAL_ID))
 }
 
 func proposalKey(ID *big.Int) []byte {
-	return utils.ConcatKey(this, []byte(SKP_PROPOSAL), ID.Bytes())
+	return contract.ConcatKey(this, []byte(SKP_PROPOSAL), ID.Bytes())
 }
 
 func proposalListKey() []byte {
-	return utils.ConcatKey(this, []byte(SKP_PROPOSAL_LIST))
+	return contract.ConcatKey(this, []byte(SKP_PROPOSAL_LIST))
 }
 
 func configProposalListKey() []byte {
-	return utils.ConcatKey(this, []byte(SKP_CONFIG_PROPOSAL_LIST))
+	return contract.ConcatKey(this, []byte(SKP_CONFIG_PROPOSAL_LIST))
 }
 
 func communityProposalListKey() []byte {
-	return utils.ConcatKey(this, []byte(SKP_COMMUNITY_PROPOSAL_LIST))
+	return contract.ConcatKey(this, []byte(SKP_COMMUNITY_PROPOSAL_LIST))
 }

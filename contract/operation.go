@@ -15,35 +15,43 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The Zion.  If not, see <http://www.gnu.org/licenses/>.
  */
-package utils
+package contract
 
 import (
+	"encoding/binary"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
-type EventEmitter struct {
-	contract common.Address
-	state    *state.StateDB
-	block    uint64
+func ConcatKey(contract common.Address, args ...[]byte) []byte {
+	temp := contract[:]
+	for _, arg := range args {
+		temp = append(temp, arg...)
+	}
+	return temp
 }
 
-func NewEventEmitter(contract common.Address, block uint64, state *state.StateDB) *EventEmitter {
-	emitter := &EventEmitter{
-		contract: contract,
-		state:    state,
-		block:    block,
-	}
-	return emitter
+func GetUint32Bytes(num uint32) []byte {
+	var p [4]byte
+	binary.LittleEndian.PutUint32(p[:], num)
+	return p[:]
 }
 
-func (emitter *EventEmitter) Event(topics []common.Hash, data []byte) {
-	event := &types.Log{
-		Address:     emitter.contract,
-		Topics:      topics,
-		Data:        data,
-		BlockNumber: emitter.block,
+func GetBytesUint32(b []byte) uint32 {
+	if len(b) != 4 {
+		return 0
 	}
-	emitter.state.AddLog(event)
+	return binary.LittleEndian.Uint32(b[:])
+}
+
+func GetBytesUint64(b []byte) uint64 {
+	if len(b) != 8 {
+		return 0
+	}
+	return binary.LittleEndian.Uint64(b[:])
+}
+
+func GetUint64Bytes(num uint64) []byte {
+	var p [8]byte
+	binary.LittleEndian.PutUint64(p[:], num)
+	return p[:]
 }

@@ -20,11 +20,10 @@ package no_proof
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/modules"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 )
 
 type NoProofHandler struct {
@@ -34,10 +33,10 @@ func NewNoProofHandler() *NoProofHandler {
 	return &NoProofHandler{}
 }
 
-func (this *NoProofHandler) MakeDepositProposal(service *modules.ModuleContract) (*common.MakeTxParam, error) {
+func (this *NoProofHandler) MakeDepositProposal(service *contract.ModuleContract) (*common.MakeTxParam, error) {
 	ctx := service.ContractRef().CurrentContext()
 	params := &common.EntranceParam{}
-	if err := utils.UnpackMethod(common.ABI, common.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 

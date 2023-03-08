@@ -21,7 +21,7 @@ package node_manager
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules/helper"
 	"math/big"
 )
@@ -37,7 +37,7 @@ var (
 )
 
 // IncreaseValidatorPeriod return the period just ended
-func IncreaseValidatorPeriod(s *modules.ModuleContract, validator *Validator) (uint64, error) {
+func IncreaseValidatorPeriod(s *contract.ModuleContract, validator *Validator) (uint64, error) {
 	// fetch current rewards
 	validatorAccumulatedRewards, err := getValidatorAccumulatedRewards(s, validator.ConsensusAddress)
 	if err != nil {
@@ -90,7 +90,7 @@ func IncreaseValidatorPeriod(s *modules.ModuleContract, validator *Validator) (u
 	return validatorAccumulatedRewards.Period, nil
 }
 
-func withdrawStakeRewards(s *modules.ModuleContract, validator *Validator, stakeInfo *StakeInfo) (Dec, error) {
+func withdrawStakeRewards(s *contract.ModuleContract, validator *Validator, stakeInfo *StakeInfo) (Dec, error) {
 	// end current period and calculate rewards
 	endingPeriod, err := IncreaseValidatorPeriod(s, validator)
 	if err != nil {
@@ -148,7 +148,7 @@ func withdrawStakeRewards(s *modules.ModuleContract, validator *Validator, stake
 	return rewards, nil
 }
 
-func CalculateStakeRewards(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address, endPeriod uint64) (Dec, error) {
+func CalculateStakeRewards(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address, endPeriod uint64) (Dec, error) {
 	// fetch starting info for delegation
 	startingInfo, err := getStakeStartingInfo(s, stakeAddress, consensusAddr)
 	if err != nil {
@@ -183,7 +183,7 @@ func CalculateStakeRewards(s *modules.ModuleContract, stakeAddress common.Addres
 	return rewards, nil
 }
 
-func initializeStake(s *modules.ModuleContract, stakeInfo *StakeInfo, consensusAddr common.Address) error {
+func initializeStake(s *contract.ModuleContract, stakeInfo *StakeInfo, consensusAddr common.Address) error {
 	// period has already been incremented
 	validatorAccumulatedRewards, err := getValidatorAccumulatedRewards(s, consensusAddr)
 	if err != nil {
@@ -206,7 +206,7 @@ func initializeStake(s *modules.ModuleContract, stakeInfo *StakeInfo, consensusA
 	return nil
 }
 
-func withdrawCommission(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (Dec, error) {
+func withdrawCommission(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (Dec, error) {
 	accumulatedCommission, err := getAccumulatedCommission(s, consensusAddr)
 	if err != nil {
 		return Dec{nil}, fmt.Errorf("withdrawCommission, getAccumulatedCommission error: %v", err)
@@ -245,7 +245,7 @@ func withdrawCommission(s *modules.ModuleContract, stakeAddress common.Address, 
 	return accumulatedCommission.Amount, nil
 }
 
-func allocateRewardsToValidator(s *modules.ModuleContract, validator *Validator, rewards Dec) error {
+func allocateRewardsToValidator(s *contract.ModuleContract, validator *Validator, rewards Dec) error {
 	commission, err := validator.Commission.Rate.MulWithPercentDecimal(rewards)
 	if err != nil {
 		return fmt.Errorf("allocateRewardsToValidator, validator.Commission.Rate.Mul error: %v", err)

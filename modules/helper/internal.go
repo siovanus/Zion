@@ -3,13 +3,13 @@ package helper
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/modules"
 	"math/big"
 )
 
-func ValidateOwner(n *modules.ModuleContract, address common.Address) error {
+func ValidateOwner(n *contract.ModuleContract, address common.Address) error {
 	if n.ContractRef().TxOrigin() != address {
 		return fmt.Errorf("validateOwner, authentication failed!")
 	}

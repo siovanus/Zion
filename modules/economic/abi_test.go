@@ -19,8 +19,8 @@
 package economic
 
 import (
+	"github.com/ethereum/go-ethereum/contract"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 	"testing"
 
@@ -29,10 +29,10 @@ import (
 )
 
 func TestABIMethodContractName(t *testing.T) {
-	enc, err := utils.PackOutputs(ABI, MethodName, contractName)
+	enc, err := contract.PackOutputs(ABI, MethodName, contractName)
 	assert.NoError(t, err)
 	params := new(MethodContractNameOutput)
-	assert.NoError(t, utils.UnpackOutputs(ABI, MethodName, params, enc))
+	assert.NoError(t, contract.UnpackOutputs(ABI, MethodName, params, enc))
 	assert.Equal(t, contractName, params.Name)
 }
 

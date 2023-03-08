@@ -21,15 +21,14 @@ package common
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
-
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-func MakeTransaction(service *modules.ModuleContract, params *MakeTxParam, fromChainID uint64) error {
+func MakeTransaction(service *contract.ModuleContract, params *MakeTxParam, fromChainID uint64) error {
 
 	txHash := service.ContractRef().TxHash()
 	merkleValue := &ToMerkleValue{
@@ -46,7 +45,7 @@ func MakeTransaction(service *modules.ModuleContract, params *MakeTxParam, fromC
 	if err != nil {
 		return fmt.Errorf("MakeTransaction, putRequest error:%s", err)
 	}
-	chainIDBytes := utils2.GetUint64Bytes(params.ToChainID)
+	chainIDBytes := contract.GetUint64Bytes(params.ToChainID)
 	key := state.Key2Slot(append([]byte(REQUEST), append(chainIDBytes, merkleValue.TxHash...)...)).String()
 	if err := NotifyMakeProof(service, hex.EncodeToString(value), key); err != nil {
 		return fmt.Errorf("MakeTransaction, NotifyMakeProof error:%s", err)
@@ -54,9 +53,9 @@ func MakeTransaction(service *modules.ModuleContract, params *MakeTxParam, fromC
 	return nil
 }
 
-func PutRequest(module *modules.ModuleContract, txHash []byte, chainID uint64, request []byte) error {
+func PutRequest(module *contract.ModuleContract, txHash []byte, chainID uint64, request []byte) error {
 	hash := crypto.Keccak256Hash(request)
-	contract := utils2.CrossChainManagerContractAddress
-	chainIDBytes := utils2.GetUint64Bytes(chainID)
-	return module.GetCacheDB().SetHash(utils2.ConcatKey(contract, []byte(REQUEST), chainIDBytes, txHash), hash)
+	contractAddr := cfg.CrossChainManagerContractAddress
+	chainIDBytes := contract.GetUint64Bytes(chainID)
+	return module.GetCacheDB().SetHash(contract.ConcatKey(contractAddr, []byte(REQUEST), chainIDBytes, txHash), hash)
 }

@@ -22,8 +22,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
-	"github.com/ethereum/go-ethereum/modules/utils"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"math"
 	"math/big"
 	"sync"
@@ -82,7 +82,7 @@ const (
 func (s *backend) getSystemMessage(toAddress common.Address, data []byte, value *big.Int) callmsg {
 	return callmsg{
 		ethereum.CallMsg{
-			From:     utils.SystemTxSender,
+			From:     cfg.SystemTxSender,
 			Gas:      systemGas,
 			GasPrice: big.NewInt(systemGasPrice),
 			Value:    value,
@@ -93,10 +93,10 @@ func (s *backend) getSystemMessage(toAddress common.Address, data []byte, value 
 }
 
 // getSystemCaller use fixed systemCaller as contract caller, and tx hash is useless in contract call.
-func (s *backend) getSystemCaller(state *state.StateDB, height *big.Int) *modules.ContractRef {
-	caller := utils.SystemTxSender
+func (s *backend) getSystemCaller(state *state.StateDB, height *big.Int) *contract.ContractRef {
+	caller := cfg.SystemTxSender
 	hash := common.EmptyHash
-	return modules.NewContractRef(state, caller, caller, height, hash, systemGas, nil)
+	return contract.NewContractRef(state, caller, caller, height, hash, systemGas, nil)
 }
 
 // applyTransaction execute transaction without miner worker, and only succeed tx will be packed in block.
@@ -111,7 +111,7 @@ func (s *backend) applyTransaction(
 ) (err error) {
 
 	// check msg sender
-	if msg.From() != utils.SystemTxSender {
+	if msg.From() != cfg.SystemTxSender {
 		return fmt.Errorf("system tx sender invalid")
 	}
 

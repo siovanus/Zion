@@ -20,6 +20,7 @@ package info_sync
 
 import (
 	"crypto/ecdsa"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
@@ -66,8 +67,8 @@ func Init() {
 func putSideChain() {
 	blockNumber := big.NewInt(1)
 	extra := uint64(10)
-	contractRef := modules.NewContractRef(sdb, common.EmptyAddress, common.EmptyAddress, blockNumber, common.Hash{}, extra, nil)
-	contract := modules.NewModuleContract(sdb, contractRef)
+	contractRef := contract.NewContractRef(sdb, common.EmptyAddress, common.EmptyAddress, blockNumber, common.Hash{}, extra, nil)
+	contract := contract.NewModuleContract(sdb, contractRef)
 
 	err := side_chain_manager.PutSideChain(contract, &side_chain_manager.SideChain{
 		Router:  cross_chain_manager.NO_PROOF_ROUTER,
@@ -141,7 +142,7 @@ func TestNormalSyncRootInfo(t *testing.T) {
 		assert.Nil(t, err)
 		ret, err := modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "SyncRootInfo", input, new(big.Int), caller, caller, extra, sdb)
 		assert.Nil(t, err)
-		result, err := utils2.PackOutputs(ABI, MethodSyncRootInfo, true)
+		result, err := contract.PackOutputs(ABI, MethodSyncRootInfo, true)
 		assert.Nil(t, err)
 		assert.Equal(t, ret, result)
 	}

@@ -21,12 +21,12 @@ package node_manager
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules/helper"
 	"math/big"
 )
 
-func AfterValidatorCreated(s *modules.ModuleContract, validator *Validator) error {
+func AfterValidatorCreated(s *contract.ModuleContract, validator *Validator) error {
 	// set initial historical rewards (period 0) with reference count of 1
 	err := setValidatorSnapshotRewards(s, validator.ConsensusAddress, 0, &ValidatorSnapshotRewards{NewDecFromBigInt(new(big.Int)), 1})
 	if err != nil {
@@ -53,7 +53,7 @@ func AfterValidatorCreated(s *modules.ModuleContract, validator *Validator) erro
 	return nil
 }
 
-func AfterValidatorRemoved(s *modules.ModuleContract, validator *Validator) error {
+func AfterValidatorRemoved(s *contract.ModuleContract, validator *Validator) error {
 	// fetch outstanding
 	outstanding, err := getValidatorOutstandingRewards(s, validator.ConsensusAddress)
 	if err != nil {
@@ -92,19 +92,19 @@ func AfterValidatorRemoved(s *modules.ModuleContract, validator *Validator) erro
 	return nil
 }
 
-func BeforeStakeCreated(s *modules.ModuleContract, validator *Validator) error {
+func BeforeStakeCreated(s *contract.ModuleContract, validator *Validator) error {
 	_, err := IncreaseValidatorPeriod(s, validator)
 	return err
 }
 
-func BeforeStakeModified(s *modules.ModuleContract, validator *Validator, stakeInfo *StakeInfo) error {
+func BeforeStakeModified(s *contract.ModuleContract, validator *Validator, stakeInfo *StakeInfo) error {
 	if _, err := withdrawStakeRewards(s, validator, stakeInfo); err != nil {
 		return err
 	}
 	return nil
 }
 
-func AfterStakeModified(s *modules.ModuleContract, stakeInfo *StakeInfo, consensusAddr common.Address) error {
+func AfterStakeModified(s *contract.ModuleContract, stakeInfo *StakeInfo, consensusAddr common.Address) error {
 	err := initializeStake(s, stakeInfo, consensusAddr)
 	if err != nil {
 		return fmt.Errorf("AfterStakeModified, initializeStake error: %v", err)

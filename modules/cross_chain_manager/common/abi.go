@@ -19,8 +19,8 @@ package common
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules/go_abi/cross_chain_manager_abi"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"io"
 	"strings"
 
@@ -65,7 +65,7 @@ type CheckDoneParam struct {
 }
 
 func (m *CheckDoneParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodCheckDone, m)
+	return contract.PackMethodWithStruct(ABI, MethodCheckDone, m)
 }
 
 type CheckDoneOutput struct {
@@ -73,7 +73,7 @@ type CheckDoneOutput struct {
 }
 
 func (m *CheckDoneOutput) Decode(payload []byte) error {
-	if err := utils.UnpackOutputs(ABI, MethodCheckDone, m, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodCheckDone, m, payload); err != nil {
 		return err
 	}
 	return nil
@@ -88,7 +88,7 @@ type EntranceParam struct {
 }
 
 func (m *EntranceParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodImportOuterTransfer, m)
+	return contract.PackMethodWithStruct(ABI, MethodImportOuterTransfer, m)
 }
 
 func (m *EntranceParam) EncodeRLP(w io.Writer) error {
@@ -151,7 +151,7 @@ type MultiSignParam struct {
 }
 
 func (m *MultiSignParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodMultiSignRipple, m)
+	return contract.PackMethodWithStruct(ABI, MethodMultiSignRipple, m)
 }
 
 func (m *MultiSignParam) EncodeRLP(w io.Writer) error {
@@ -183,7 +183,7 @@ type ReconstructTxParam struct {
 }
 
 func (m *ReconstructTxParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodReconstructRippleTx, m)
+	return contract.PackMethodWithStruct(ABI, MethodReconstructRippleTx, m)
 }
 
 func (m *ReconstructTxParam) EncodeRLP(w io.Writer) error {
@@ -215,5 +215,5 @@ type ReplenishParam struct {
 }
 
 func (m *ReplenishParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodReplenish, m)
+	return contract.PackMethodWithStruct(ABI, MethodReplenish, m)
 }

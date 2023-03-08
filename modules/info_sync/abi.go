@@ -21,9 +21,9 @@ package info_sync
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/go_abi/info_sync_abi"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"strings"
 )
@@ -60,7 +60,7 @@ type GetInfoParam struct {
 }
 
 func (m *GetInfoParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodGetInfo, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetInfo, m)
 }
 
 type GetInfoOutput struct {
@@ -68,7 +68,7 @@ type GetInfoOutput struct {
 }
 
 func (m *GetInfoOutput) Decode(payload []byte) error {
-	if err := utils.UnpackOutputs(ABI, MethodGetInfo, m, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetInfo, m, payload); err != nil {
 		return err
 	}
 	return nil
@@ -79,7 +79,7 @@ type GetInfoHeightParam struct {
 }
 
 func (m *GetInfoHeightParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodGetInfoHeight, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetInfoHeight, m)
 }
 
 type GetInfoHeightOutput struct {
@@ -87,7 +87,7 @@ type GetInfoHeightOutput struct {
 }
 
 func (m *GetInfoHeightOutput) Decode(payload []byte) error {
-	if err := utils.UnpackOutputs(ABI, MethodGetInfoHeight, m, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetInfoHeight, m, payload); err != nil {
 		return err
 	}
 	return nil
@@ -100,7 +100,7 @@ type SyncRootInfoParam struct {
 }
 
 func (m *SyncRootInfoParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodSyncRootInfo, m)
+	return contract.PackMethodWithStruct(ABI, MethodSyncRootInfo, m)
 }
 
 //Digest Digest calculate the hash of param input
@@ -123,5 +123,5 @@ type ReplenishParam struct {
 }
 
 func (m *ReplenishParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, MethodReplenish, m)
+	return contract.PackMethodWithStruct(ABI, MethodReplenish, m)
 }

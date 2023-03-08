@@ -22,6 +22,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
+	contract2 "github.com/ethereum/go-ethereum/contract"
 	native2 "github.com/ethereum/go-ethereum/modules"
 	scom "github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/modules/go_abi/cross_chain_manager_abi"
@@ -91,12 +92,12 @@ func init() {
 	param4.ChainID = 79
 
 	for _, param := range []*side_chain_manager.RegisterSideChainParam{param, param1, param2, param3, &param4} {
-		input, err := utils2.PackMethodWithStruct(side_chain_manager.ABI, side_chain_manager_abi.MethodRegisterSideChain, param)
+		input, err := contract2.PackMethodWithStruct(side_chain_manager.ABI, side_chain_manager_abi.MethodRegisterSideChain, param)
 		if err != nil {
 			panic(err)
 		}
 		caller := signers[0]
-		contractRef := native2.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
+		contractRef := contract2.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
 		_, _, err = contractRef.NativeCall(caller, utils2.SideChainManagerContractAddress, input)
 		if err != nil {
 			panic(err)
@@ -104,17 +105,17 @@ func init() {
 		p := new(side_chain_manager.ChainIDParam)
 		p.ChainID = param.ChainID
 
-		input, err = utils2.PackMethodWithStruct(side_chain_manager.ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, p)
+		input, err = contract2.PackMethodWithStruct(side_chain_manager.ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, p)
 		if err != nil {
 			panic(err)
 		}
-		contractRef = native2.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
+		contractRef = contract2.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
 		_, _, err = contractRef.NativeCall(caller, utils2.SideChainManagerContractAddress, input)
 		if err != nil {
 			panic(err)
 		}
 		caller = signers[1]
-		contractRef = native2.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
+		contractRef = contract2.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
 		_, _, err = contractRef.NativeCall(caller, utils2.SideChainManagerContractAddress, input)
 		if err != nil {
 			panic(err)
@@ -150,12 +151,12 @@ func TestImportOuterTransfer(t *testing.T) {
 			param.Signature, err = crypto.Sign(digest, keys[i])
 			assert.Nil(t, err)
 
-			input, err := utils2.PackMethodWithStruct(info_sync2.ABI, info_sync2.MethodSyncRootInfo, param)
+			input, err := contract2.PackMethodWithStruct(info_sync2.ABI, info_sync2.MethodSyncRootInfo, param)
 			assert.Nil(t, err)
 
 			blockNumber := big.NewInt(1)
 			caller := common.Address{}
-			contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, 10000000, nil)
+			contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, 10000000, nil)
 			_, _, err = contractRef.NativeCall(caller, utils2.InfoSyncContractAddress, input)
 			assert.Nil(t, err)
 		}
@@ -200,18 +201,18 @@ func TestImportOuterTransfer(t *testing.T) {
 			param.Signature, err = crypto.Sign(digest, keys[i])
 			assert.Nil(t, err)
 
-			input, err := utils2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, param)
+			input, err := contract2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, param)
 			assert.Nil(t, err)
 
 			blockNumber := big.NewInt(1)
 			extra := uint64(10)
 			caller := common.Address{}
-			contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodImportOuterTransfer]+extra, nil)
+			contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodImportOuterTransfer]+extra, nil)
 			tr.Start()
 			ret, leftOverGas, err := contractRef.NativeCall(caller, utils2.CrossChainManagerContractAddress, input)
 			tr.Stop()
 			assert.Nil(t, err)
-			result, err := utils2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, true)
+			result, err := contract2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, true)
 			assert.Nil(t, err)
 			assert.Equal(t, ret, result)
 			assert.Equal(t, leftOverGas, extra)
@@ -219,18 +220,18 @@ func TestImportOuterTransfer(t *testing.T) {
 	}
 
 	for _, param := range []*scom.EntranceParam{param2, param3} {
-		input, err := utils2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, param)
+		input, err := contract2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
 		extra := uint64(10)
 		caller := common.Address{}
-		contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodImportOuterTransfer]+extra, nil)
+		contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodImportOuterTransfer]+extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.NativeCall(caller, utils2.CrossChainManagerContractAddress, input)
 		tr.Stop()
 		assert.Nil(t, err)
-		result, err := utils2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, true)
+		result, err := contract2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodImportOuterTransfer, true)
 		assert.Nil(t, err)
 		assert.Equal(t, ret, result)
 		assert.Equal(t, leftOverGas, extra)
@@ -251,18 +252,18 @@ func TestReplenish(t *testing.T) {
 
 	tr := native2.NewTimer(scom.MethodReplenish)
 	for _, param := range []*scom.ReplenishParam{param, param1} {
-		input, err := utils2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodReplenish, param)
+		input, err := contract2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodReplenish, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
 		extra := uint64(10)
 		caller := common.Address{}
-		contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodReplenish]+extra, nil)
+		contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodReplenish]+extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.NativeCall(caller, utils2.CrossChainManagerContractAddress, input)
 		tr.Stop()
 		assert.Nil(t, err)
-		result, err := utils2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodReplenish, true)
+		result, err := contract2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodReplenish, true)
 		assert.Nil(t, err)
 		assert.Equal(t, ret, result)
 		assert.Equal(t, leftOverGas, extra)
@@ -279,18 +280,18 @@ func TestCheckDone(t *testing.T) {
 
 	tr := native2.NewTimer(scom.MethodCheckDone)
 	for _, param := range []*scom.CheckDoneParam{param, param1} {
-		input, err := utils2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodCheckDone, param)
+		input, err := contract2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodCheckDone, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
 		extra := uint64(10)
 		caller := common.Address{}
-		contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodCheckDone]+extra, nil)
+		contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodCheckDone]+extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.NativeCall(caller, utils2.CrossChainManagerContractAddress, input)
 		tr.Stop()
 		assert.Nil(t, err)
-		result, err := utils2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodCheckDone, false)
+		result, err := contract2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodCheckDone, false)
 		assert.Nil(t, err)
 		assert.Equal(t, ret, result)
 		assert.Equal(t, leftOverGas, extra)
@@ -307,18 +308,18 @@ func TestWhiteChain(t *testing.T) {
 
 	tr := native2.NewTimer(scom.MethodBlackChain)
 	for _, param := range []*scom.BlackChainParam{param, param1} {
-		input, err := utils2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodWhiteChain, param)
+		input, err := contract2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodWhiteChain, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
 		extra := uint64(10)
 		caller := signers[0]
-		contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodWhiteChain]+extra, nil)
+		contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodWhiteChain]+extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.NativeCall(caller, utils2.CrossChainManagerContractAddress, input)
 		tr.Stop()
 		assert.Nil(t, err)
-		result, err := utils2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodWhiteChain, true)
+		result, err := contract2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodWhiteChain, true)
 		assert.Nil(t, err)
 		assert.Equal(t, ret, result)
 		assert.Equal(t, leftOverGas, extra)
@@ -335,18 +336,18 @@ func TestBlackChain(t *testing.T) {
 
 	tr := native2.NewTimer(scom.MethodBlackChain)
 	for _, param := range []*scom.BlackChainParam{param, param1} {
-		input, err := utils2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodBlackChain, param)
+		input, err := contract2.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodBlackChain, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
 		extra := uint64(10)
 		caller := signers[0]
-		contractRef := native2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodBlackChain]+extra, nil)
+		contractRef := contract2.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodBlackChain]+extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.NativeCall(caller, utils2.CrossChainManagerContractAddress, input)
 		tr.Stop()
 		assert.Nil(t, err)
-		result, err := utils2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodBlackChain, true)
+		result, err := contract2.PackOutputs(scom.ABI, cross_chain_manager_abi.MethodBlackChain, true)
 		assert.Nil(t, err)
 		assert.Equal(t, ret, result)
 		assert.Equal(t, leftOverGas, extra)

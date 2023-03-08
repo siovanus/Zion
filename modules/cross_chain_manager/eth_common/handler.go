@@ -22,11 +22,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
 	common2 "github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	icom "github.com/ethereum/go-ethereum/modules/info_sync"
 	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -42,10 +41,10 @@ func NewHandler() *Handler {
 	return new(Handler)
 }
 
-func (h *Handler) MakeDepositProposal(service *modules.ModuleContract) (txParam *common2.MakeTxParam, err error) {
+func (h *Handler) MakeDepositProposal(service *contract.ModuleContract) (txParam *common2.MakeTxParam, err error) {
 	ctx := service.ContractRef().CurrentContext()
 	params := &common2.EntranceParam{}
-	if err := utils.UnpackMethod(common2.ABI, common2.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common2.ABI, common2.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +74,7 @@ func (h *Handler) MakeDepositProposal(service *modules.ModuleContract) (txParam 
 	return
 }
 
-func (h *Handler) VerifyDepositProposal(service *modules.ModuleContract,
+func (h *Handler) VerifyDepositProposal(service *contract.ModuleContract,
 	sideChain *side_chain_manager.SideChain, params *common2.EntranceParam) (txParam *common2.MakeTxParam, err error) {
 
 	// Verify eth proof

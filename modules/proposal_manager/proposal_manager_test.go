@@ -20,6 +20,7 @@ package proposal_manager
 
 import (
 	"crypto/ecdsa"
+	contract2 "github.com/ethereum/go-ethereum/contract"
 	native2 "github.com/ethereum/go-ethereum/modules"
 	"github.com/ethereum/go-ethereum/modules/contract"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
@@ -57,7 +58,7 @@ func init() {
 
 func TestProposalManager(t *testing.T) {
 	extra := uint64(21000000000000)
-	contractRef := native2.NewContractRef(sdb, common.EmptyAddress, common.EmptyAddress, common.Big1, common.Hash{}, extra, nil)
+	contractRef := contract2.NewContractRef(sdb, common.EmptyAddress, common.EmptyAddress, common.Big1, common.Hash{}, extra, nil)
 	c := native2.NewNativeContract(sdb, contractRef)
 
 	globalConfig, err := node_manager.GetGlobalConfigImpl(c)

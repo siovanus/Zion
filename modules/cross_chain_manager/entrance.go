@@ -20,17 +20,15 @@ package cross_chain_manager
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/eth_common"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/no_proof"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/ripple"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 )
-
-const contractName = "cross chain manager"
 
 const (
 	BLACKED_CHAIN = "BlackedChain"
@@ -39,7 +37,7 @@ const (
 // the real gas usage of `importOutTransfer` and `replenish` are 3291750 and 727125.
 // in order to reduce the cross-chain cost, set them to be 300000 and 100000.
 var (
-	this     = modules.ModuleContractAddrMap[modules.ModuleCrossChain]
+	this     = cfg.ModuleContractAddrMap[cfg.ModuleCrossChain]
 	gasTable = map[string]uint64{
 		common.MethodContractName:        21000,
 		common.MethodImportOuterTransfer: 300000,
@@ -60,10 +58,10 @@ var (
 )
 
 func InitCrossChainManager() {
-	modules.Contracts[this] = RegisterCrossChainManagerContract
+	contract.Contracts[this] = RegisterCrossChainManagerContract
 }
 
-func RegisterCrossChainManagerContract(s *modules.ModuleContract) {
+func RegisterCrossChainManagerContract(s *contract.ModuleContract) {
 	s.Prepare(common.ABI, gasTable)
 
 	s.Register(common.MethodContractName, Name)
@@ -91,14 +89,14 @@ func GetChainHandler(router uint64) (common.ChainHandler, error) {
 	}
 }
 
-func Name(s *modules.ModuleContract) ([]byte, error) {
-	return utils2.PackOutputs(common.ABI, common.MethodContractName, contractName)
+func Name(s *contract.ModuleContract) ([]byte, error) {
+	return contract.PackOutputs(common.ABI, common.MethodContractName, cfg.ModuleCrossChain)
 }
 
-func CheckDone(s *modules.ModuleContract) ([]byte, error) {
+func CheckDone(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &common.CheckDoneParam{}
-	if err := utils2.UnpackMethod(common.ABI, common.MethodCheckDone, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodCheckDone, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 	if len(params.CrossChainID) == 0 || len(params.CrossChainID) > 2000 {
@@ -108,13 +106,13 @@ func CheckDone(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil && err != common.ErrTxAlreadyImported {
 		return nil, err
 	}
-	return utils2.PackOutputs(common.ABI, common.MethodCheckDone, err == common.ErrTxAlreadyImported)
+	return contract.PackOutputs(common.ABI, common.MethodCheckDone, err == common.ErrTxAlreadyImported)
 }
 
-func ImportOuterTransfer(s *modules.ModuleContract) ([]byte, error) {
+func ImportOuterTransfer(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &common.EntranceParam{}
-	if err := utils2.UnpackMethod(common.ABI, common.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -148,7 +146,7 @@ func ImportOuterTransfer(s *modules.ModuleContract) ([]byte, error) {
 	}
 
 	if txParam == nil {
-		return utils2.PackOutputs(common.ABI, common.MethodImportOuterTransfer, true)
+		return contract.PackOutputs(common.ABI, common.MethodImportOuterTransfer, true)
 	}
 
 	//check target chain
@@ -171,9 +169,9 @@ func ImportOuterTransfer(s *modules.ModuleContract) ([]byte, error) {
 	if dstChain.Router == RIPPLE_ROUTER {
 		err := ripple.NewRippleHandler().MakeTransaction(s, txParam, srcChainID)
 		if err != nil {
-			return utils2.BYTE_FALSE, err
+			return nil, err
 		}
-		return utils2.BYTE_TRUE, nil
+		return contract.PackOutputs(common.ABI, common.MethodImportOuterTransfer, true)
 	}
 
 	//NOTE, you need to store the tx in this
@@ -181,54 +179,54 @@ func ImportOuterTransfer(s *modules.ModuleContract) ([]byte, error) {
 		return nil, err
 	}
 
-	return utils2.PackOutputs(common.ABI, common.MethodImportOuterTransfer, true)
+	return contract.PackOutputs(common.ABI, common.MethodImportOuterTransfer, true)
 }
 
-func MultiSignRipple(s *modules.ModuleContract) ([]byte, error) {
+func MultiSignRipple(s *contract.ModuleContract) ([]byte, error) {
 	handler := ripple.NewRippleHandler()
 
 	//1. multi sign
 	err := handler.MultiSign(s)
 	if err != nil {
-		return utils2.BYTE_FALSE, err
+		return nil, err
 	}
-	return utils2.BYTE_TRUE, nil
+	return contract.PackOutputs(common.ABI, common.MethodMultiSignRipple, true)
 }
 
-func ReconstructRippleTx(s *modules.ModuleContract) ([]byte, error) {
+func ReconstructRippleTx(s *contract.ModuleContract) ([]byte, error) {
 	handler := ripple.NewRippleHandler()
 
 	err := handler.ReconstructTx(s)
 	if err != nil {
-		return utils2.BYTE_FALSE, err
+		return nil, err
 	}
-	return utils2.BYTE_TRUE, nil
+	return contract.PackOutputs(common.ABI, common.MethodReconstructRippleTx, true)
 }
 
-func BlackChain(s *modules.ModuleContract) ([]byte, error) {
+func BlackChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &common.BlackChainParam{}
-	if err := utils2.UnpackMethod(common.ABI, common.MethodBlackChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodBlackChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
 	// Get current epoch operator
-	ok, err := node_manager.CheckConsensusSigns(s, common.MethodBlackChain, utils2.GetUint64Bytes(params.ChainID), s.ContractRef().MsgSender(), node_manager.Signer)
+	ok, err := node_manager.CheckConsensusSigns(s, common.MethodBlackChain, contract.GetUint64Bytes(params.ChainID), s.ContractRef().MsgSender(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("BlackChain, CheckConsensusSigns error: %v", err)
 	}
 	if !ok {
-		return utils2.PackOutputs(common.ABI, common.MethodBlackChain, true)
+		return contract.PackOutputs(common.ABI, common.MethodBlackChain, true)
 	}
 
 	PutBlackChain(s, params.ChainID)
-	return utils2.PackOutputs(common.ABI, common.MethodBlackChain, true)
+	return contract.PackOutputs(common.ABI, common.MethodBlackChain, true)
 }
 
-func WhiteChain(s *modules.ModuleContract) ([]byte, error) {
+func WhiteChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &common.BlackChainParam{}
-	if err := utils2.UnpackMethod(common.ABI, common.MethodWhiteChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodWhiteChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -238,17 +236,17 @@ func WhiteChain(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("WhiteChain, CheckConsensusSigns error: %v", err)
 	}
 	if !ok {
-		return utils2.PackOutputs(common.ABI, common.MethodWhiteChain, true)
+		return contract.PackOutputs(common.ABI, common.MethodWhiteChain, true)
 	}
 
 	RemoveBlackChain(s, params.ChainID)
-	return utils2.PackOutputs(common.ABI, common.MethodWhiteChain, true)
+	return contract.PackOutputs(common.ABI, common.MethodWhiteChain, true)
 }
 
-func Replenish(s *modules.ModuleContract) ([]byte, error) {
+func Replenish(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &common.ReplenishParam{}
-	if err := utils2.UnpackMethod(common.ABI, common.MethodReplenish, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodReplenish, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("Replenish, unpack params error: %s", err)
 	}
 
@@ -259,5 +257,5 @@ func Replenish(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Replenish, NotifyReplenish error: %s", err)
 	}
-	return utils2.PackOutputs(common.ABI, common.MethodReplenish, true)
+	return contract.PackOutputs(common.ABI, common.MethodReplenish, true)
 }

@@ -21,8 +21,7 @@ package node_manager
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
+	"github.com/ethereum/go-ethereum/contract"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -58,7 +57,7 @@ const (
 	SKP_COMMUNITY_INFO                = "st_community_info"
 )
 
-func setAccumulatedCommission(s *modules.ModuleContract, consensusAddr common.Address, accumulatedCommission *AccumulatedCommission) error {
+func setAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.Address, accumulatedCommission *AccumulatedCommission) error {
 	key := accumulatedCommissionKey(consensusAddr)
 	store, err := rlp.EncodeToBytes(accumulatedCommission)
 	if err != nil {
@@ -68,7 +67,7 @@ func setAccumulatedCommission(s *modules.ModuleContract, consensusAddr common.Ad
 	return nil
 }
 
-func getAccumulatedCommission(s *modules.ModuleContract, consensusAddr common.Address) (*AccumulatedCommission, error) {
+func getAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.Address) (*AccumulatedCommission, error) {
 	accumulatedCommission := &AccumulatedCommission{}
 	key := accumulatedCommissionKey(consensusAddr)
 	store, err := get(s, key)
@@ -81,12 +80,12 @@ func getAccumulatedCommission(s *modules.ModuleContract, consensusAddr common.Ad
 	return accumulatedCommission, nil
 }
 
-func delAccumulatedCommission(s *modules.ModuleContract, consensusAddr common.Address) {
+func delAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.Address) {
 	key := accumulatedCommissionKey(consensusAddr)
 	del(s, key)
 }
 
-func setValidatorAccumulatedRewards(s *modules.ModuleContract, consensusAddr common.Address, validatorAccumulatedRewards *ValidatorAccumulatedRewards) error {
+func setValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr common.Address, validatorAccumulatedRewards *ValidatorAccumulatedRewards) error {
 	key := validatorAccumulatedRewardsKey(consensusAddr)
 	store, err := rlp.EncodeToBytes(validatorAccumulatedRewards)
 	if err != nil {
@@ -96,7 +95,7 @@ func setValidatorAccumulatedRewards(s *modules.ModuleContract, consensusAddr com
 	return nil
 }
 
-func getValidatorAccumulatedRewards(s *modules.ModuleContract, consensusAddr common.Address) (*ValidatorAccumulatedRewards, error) {
+func getValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr common.Address) (*ValidatorAccumulatedRewards, error) {
 	validatorAccumulatedRewards := &ValidatorAccumulatedRewards{}
 	key := validatorAccumulatedRewardsKey(consensusAddr)
 	store, err := get(s, key)
@@ -109,12 +108,12 @@ func getValidatorAccumulatedRewards(s *modules.ModuleContract, consensusAddr com
 	return validatorAccumulatedRewards, nil
 }
 
-func delValidatorAccumulatedRewards(s *modules.ModuleContract, consensusAddr common.Address) {
+func delValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr common.Address) {
 	key := validatorAccumulatedRewardsKey(consensusAddr)
 	del(s, key)
 }
 
-func setValidatorOutstandingRewards(s *modules.ModuleContract, consensusAddr common.Address, validatorOutstandingRewards *ValidatorOutstandingRewards) error {
+func setValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr common.Address, validatorOutstandingRewards *ValidatorOutstandingRewards) error {
 	key := validatorOutstandingRewardsKey(consensusAddr)
 	store, err := rlp.EncodeToBytes(validatorOutstandingRewards)
 	if err != nil {
@@ -124,7 +123,7 @@ func setValidatorOutstandingRewards(s *modules.ModuleContract, consensusAddr com
 	return nil
 }
 
-func getValidatorOutstandingRewards(s *modules.ModuleContract, consensusAddr common.Address) (*ValidatorOutstandingRewards, error) {
+func getValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr common.Address) (*ValidatorOutstandingRewards, error) {
 	validatorOutstandingRewards := &ValidatorOutstandingRewards{}
 	key := validatorOutstandingRewardsKey(consensusAddr)
 	store, err := get(s, key)
@@ -137,12 +136,12 @@ func getValidatorOutstandingRewards(s *modules.ModuleContract, consensusAddr com
 	return validatorOutstandingRewards, nil
 }
 
-func delValidatorOutstandingRewards(s *modules.ModuleContract, consensusAddr common.Address) {
+func delValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr common.Address) {
 	key := validatorOutstandingRewardsKey(consensusAddr)
 	del(s, key)
 }
 
-func setOutstandingRewards(s *modules.ModuleContract, outstandingRewards *OutstandingRewards) error {
+func setOutstandingRewards(s *contract.ModuleContract, outstandingRewards *OutstandingRewards) error {
 	key := outstandingRewardsKey()
 	store, err := rlp.EncodeToBytes(outstandingRewards)
 	if err != nil {
@@ -152,7 +151,7 @@ func setOutstandingRewards(s *modules.ModuleContract, outstandingRewards *Outsta
 	return nil
 }
 
-func getOutstandingRewards(s *modules.ModuleContract) (*OutstandingRewards, error) {
+func getOutstandingRewards(s *contract.ModuleContract) (*OutstandingRewards, error) {
 	outstandingRewards := &OutstandingRewards{
 		Rewards: NewDecFromBigInt(new(big.Int)),
 	}
@@ -170,7 +169,7 @@ func getOutstandingRewards(s *modules.ModuleContract) (*OutstandingRewards, erro
 	return outstandingRewards, nil
 }
 
-func increaseReferenceCount(s *modules.ModuleContract, consensusAddr common.Address, period uint64) error {
+func increaseReferenceCount(s *contract.ModuleContract, consensusAddr common.Address, period uint64) error {
 	validatorSnapshotRewards, err := getValidatorSnapshotRewards(s, consensusAddr, period)
 	if err != nil {
 		return fmt.Errorf("increaseReferenceCount, getValidatorSnapshotRewards error: %v", err)
@@ -186,7 +185,7 @@ func increaseReferenceCount(s *modules.ModuleContract, consensusAddr common.Addr
 	return nil
 }
 
-func decreaseReferenceCount(s *modules.ModuleContract, consensusAddr common.Address, period uint64) error {
+func decreaseReferenceCount(s *contract.ModuleContract, consensusAddr common.Address, period uint64) error {
 	validatorSnapshotRewards, err := getValidatorSnapshotRewards(s, consensusAddr, period)
 	if err != nil {
 		return fmt.Errorf("decreaseReferenceCount, getValidatorSnapshotRewards error: %v", err)
@@ -206,7 +205,7 @@ func decreaseReferenceCount(s *modules.ModuleContract, consensusAddr common.Addr
 	return nil
 }
 
-func setValidatorSnapshotRewards(s *modules.ModuleContract, consensusAddr common.Address, period uint64, validatorSnapshotRewards *ValidatorSnapshotRewards) error {
+func setValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr common.Address, period uint64, validatorSnapshotRewards *ValidatorSnapshotRewards) error {
 	key := validatorSnapshotRewardsKey(consensusAddr, period)
 	store, err := rlp.EncodeToBytes(validatorSnapshotRewards)
 	if err != nil {
@@ -216,7 +215,7 @@ func setValidatorSnapshotRewards(s *modules.ModuleContract, consensusAddr common
 	return nil
 }
 
-func getValidatorSnapshotRewards(s *modules.ModuleContract, consensusAddr common.Address, period uint64) (*ValidatorSnapshotRewards, error) {
+func getValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr common.Address, period uint64) (*ValidatorSnapshotRewards, error) {
 	validatorSnapshotRewards := &ValidatorSnapshotRewards{}
 	key := validatorSnapshotRewardsKey(consensusAddr, period)
 	store, err := get(s, key)
@@ -229,12 +228,12 @@ func getValidatorSnapshotRewards(s *modules.ModuleContract, consensusAddr common
 	return validatorSnapshotRewards, nil
 }
 
-func delValidatorSnapshotRewards(s *modules.ModuleContract, consensusAddr common.Address, period uint64) {
+func delValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr common.Address, period uint64) {
 	key := validatorSnapshotRewardsKey(consensusAddr, period)
 	del(s, key)
 }
 
-func setStakeStartingInfo(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address, stakeStartingInfo *StakeStartingInfo) error {
+func setStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address, stakeStartingInfo *StakeStartingInfo) error {
 	key := stakeStartingInfoKey(stakeAddress, consensusAddr)
 	store, err := rlp.EncodeToBytes(stakeStartingInfo)
 	if err != nil {
@@ -244,7 +243,7 @@ func setStakeStartingInfo(s *modules.ModuleContract, stakeAddress common.Address
 	return nil
 }
 
-func getStakeStartingInfo(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (*StakeStartingInfo, error) {
+func getStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (*StakeStartingInfo, error) {
 	stakeStartingInfo := &StakeStartingInfo{}
 	key := stakeStartingInfoKey(stakeAddress, consensusAddr)
 	store, err := get(s, key)
@@ -257,12 +256,12 @@ func getStakeStartingInfo(s *modules.ModuleContract, stakeAddress common.Address
 	return stakeStartingInfo, nil
 }
 
-func delStakeStartingInfo(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) {
+func delStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) {
 	key := stakeStartingInfoKey(stakeAddress, consensusAddr)
 	del(s, key)
 }
 
-func SetGlobalConfig(s *modules.ModuleContract, globalConfig *GlobalConfig) error {
+func SetGlobalConfig(s *contract.ModuleContract, globalConfig *GlobalConfig) error {
 	if globalConfig.MaxCommissionChange.Cmp(PercentDecimal) > 0 {
 		return fmt.Errorf("SetGlobalConfig, MaxCommissionChange over size")
 	}
@@ -288,7 +287,7 @@ func setGenesisGlobalConfig(s *state.CacheDB, globalConfig *GlobalConfig) error 
 	return nil
 }
 
-func GetGlobalConfigImpl(s *modules.ModuleContract) (*GlobalConfig, error) {
+func GetGlobalConfigImpl(s *contract.ModuleContract) (*GlobalConfig, error) {
 	key := globalConfigKey()
 	store, err := get(s, key)
 	if err != nil {
@@ -316,7 +315,7 @@ func GetGlobalConfigFromDB(s *state.StateDB) (*GlobalConfig, error) {
 	return globalConfig, nil
 }
 
-func addToAllValidators(s *modules.ModuleContract, consensusAddr common.Address) error {
+func addToAllValidators(s *contract.ModuleContract, consensusAddr common.Address) error {
 	allValidators, err := getAllValidators(s)
 	if err != nil {
 		return fmt.Errorf("addToAllValidators, getAllValidators error: %v", err)
@@ -332,7 +331,7 @@ func addToAllValidators(s *modules.ModuleContract, consensusAddr common.Address)
 	return nil
 }
 
-func removeFromAllValidators(s *modules.ModuleContract, consensusAddr common.Address) error {
+func removeFromAllValidators(s *contract.ModuleContract, consensusAddr common.Address) error {
 	allValidators, err := getAllValidators(s)
 	if err != nil {
 		return fmt.Errorf("removeFromAllValidators, getAllValidators error: %v", err)
@@ -352,7 +351,7 @@ func removeFromAllValidators(s *modules.ModuleContract, consensusAddr common.Add
 	return nil
 }
 
-func setValidator(s *modules.ModuleContract, validator *Validator) error {
+func setValidator(s *contract.ModuleContract, validator *Validator) error {
 	key := validatorKey(validator.ConsensusAddress)
 	store, err := rlp.EncodeToBytes(validator)
 	if err != nil {
@@ -362,12 +361,12 @@ func setValidator(s *modules.ModuleContract, validator *Validator) error {
 	return nil
 }
 
-func delValidator(s *modules.ModuleContract, consensusAddr common.Address) {
+func delValidator(s *contract.ModuleContract, consensusAddr common.Address) {
 	key := validatorKey(consensusAddr)
 	del(s, key)
 }
 
-func getValidator(s *modules.ModuleContract, consensusAddr common.Address) (*Validator, bool, error) {
+func getValidator(s *contract.ModuleContract, consensusAddr common.Address) (*Validator, bool, error) {
 	key := validatorKey(consensusAddr)
 	store, err := get(s, key)
 	if err == ErrEof {
@@ -383,7 +382,7 @@ func getValidator(s *modules.ModuleContract, consensusAddr common.Address) (*Val
 	return validator, true, nil
 }
 
-func setSignerAddr(s *modules.ModuleContract, signerAddr common.Address) error {
+func setSignerAddr(s *contract.ModuleContract, signerAddr common.Address) error {
 	key := signerAddrKey(signerAddr)
 	_, err := get(s, key)
 	if err != ErrEof {
@@ -393,12 +392,12 @@ func setSignerAddr(s *modules.ModuleContract, signerAddr common.Address) error {
 	return nil
 }
 
-func delSignerAddr(s *modules.ModuleContract, signerAddr common.Address) {
+func delSignerAddr(s *contract.ModuleContract, signerAddr common.Address) {
 	key := signerAddrKey(signerAddr)
 	del(s, key)
 }
 
-func setProposalAddr(s *modules.ModuleContract, proposalAddr common.Address) error {
+func setProposalAddr(s *contract.ModuleContract, proposalAddr common.Address) error {
 	key := proposalAddrKey(proposalAddr)
 	_, err := get(s, key)
 	if err != ErrEof {
@@ -408,12 +407,12 @@ func setProposalAddr(s *modules.ModuleContract, proposalAddr common.Address) err
 	return nil
 }
 
-func delProposalAddr(s *modules.ModuleContract, proposalAddr common.Address) {
+func delProposalAddr(s *contract.ModuleContract, proposalAddr common.Address) {
 	key := proposalAddrKey(proposalAddr)
 	del(s, key)
 }
 
-func setAllValidators(s *modules.ModuleContract, allValidators *AllValidators) error {
+func setAllValidators(s *contract.ModuleContract, allValidators *AllValidators) error {
 	key := allValidatorKey()
 	store, err := rlp.EncodeToBytes(allValidators)
 	if err != nil {
@@ -423,7 +422,7 @@ func setAllValidators(s *modules.ModuleContract, allValidators *AllValidators) e
 	return nil
 }
 
-func getAllValidators(s *modules.ModuleContract) (*AllValidators, error) {
+func getAllValidators(s *contract.ModuleContract) (*AllValidators, error) {
 	allValidators := &AllValidators{
 		AllValidators: make([]common.Address, 0),
 	}
@@ -441,7 +440,7 @@ func getAllValidators(s *modules.ModuleContract) (*AllValidators, error) {
 	return allValidators, nil
 }
 
-func depositTotalPool(s *modules.ModuleContract, amount Dec) error {
+func depositTotalPool(s *contract.ModuleContract, amount Dec) error {
 	totalPool, err := getTotalPool(s)
 	if err != nil {
 		return fmt.Errorf("depositTotalPool, get total pool error: %v", err)
@@ -457,7 +456,7 @@ func depositTotalPool(s *modules.ModuleContract, amount Dec) error {
 	return nil
 }
 
-func withdrawTotalPool(s *modules.ModuleContract, amount Dec) error {
+func withdrawTotalPool(s *contract.ModuleContract, amount Dec) error {
 	totalPool, err := getTotalPool(s)
 	if err != nil {
 		return fmt.Errorf("withdrawTotalPool, get total pool error: %v", err)
@@ -473,7 +472,7 @@ func withdrawTotalPool(s *modules.ModuleContract, amount Dec) error {
 	return nil
 }
 
-func setTotalPool(s *modules.ModuleContract, totalPool *TotalPool) error {
+func setTotalPool(s *contract.ModuleContract, totalPool *TotalPool) error {
 	key := totalPoolKey()
 	store, err := rlp.EncodeToBytes(totalPool)
 	if err != nil {
@@ -483,7 +482,7 @@ func setTotalPool(s *modules.ModuleContract, totalPool *TotalPool) error {
 	return nil
 }
 
-func getTotalPool(s *modules.ModuleContract) (*TotalPool, error) {
+func getTotalPool(s *contract.ModuleContract) (*TotalPool, error) {
 	totalPool := &TotalPool{NewDecFromBigInt(new(big.Int))}
 	key := totalPoolKey()
 	store, err := get(s, key)
@@ -499,7 +498,7 @@ func getTotalPool(s *modules.ModuleContract) (*TotalPool, error) {
 	return totalPool, nil
 }
 
-func setStakeInfo(s *modules.ModuleContract, stakeInfo *StakeInfo) error {
+func setStakeInfo(s *contract.ModuleContract, stakeInfo *StakeInfo) error {
 	key := stakeInfoKey(stakeInfo.StakeAddress, stakeInfo.ConsensusAddr)
 	store, err := rlp.EncodeToBytes(stakeInfo)
 	if err != nil {
@@ -509,12 +508,12 @@ func setStakeInfo(s *modules.ModuleContract, stakeInfo *StakeInfo) error {
 	return nil
 }
 
-func delStakeInfo(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) {
+func delStakeInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) {
 	key := stakeInfoKey(stakeAddress, consensusAddr)
 	del(s, key)
 }
 
-func getStakeInfo(s *modules.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (*StakeInfo, bool, error) {
+func getStakeInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (*StakeInfo, bool, error) {
 	stakeInfo := &StakeInfo{
 		StakeAddress:  stakeAddress,
 		ConsensusAddr: consensusAddr,
@@ -534,7 +533,7 @@ func getStakeInfo(s *modules.ModuleContract, stakeAddress common.Address, consen
 	return stakeInfo, true, nil
 }
 
-func addUnlockingInfo(s *modules.ModuleContract, stakeAddress common.Address, unlockingStake *UnlockingStake) error {
+func addUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address, unlockingStake *UnlockingStake) error {
 	unlockingInfo, err := getUnlockingInfo(s, stakeAddress)
 	if err != nil {
 		return fmt.Errorf("addUnlockingInfo, GetUnlockingInfo error: %v", err)
@@ -550,7 +549,7 @@ func addUnlockingInfo(s *modules.ModuleContract, stakeAddress common.Address, un
 	return nil
 }
 
-func filterExpiredUnlockingInfo(s *modules.ModuleContract, stakeAddress common.Address) (Dec, error) {
+func filterExpiredUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) (Dec, error) {
 	height := s.ContractRef().BlockHeight()
 	unlockingInfo, err := getUnlockingInfo(s, stakeAddress)
 	if err != nil {
@@ -581,7 +580,7 @@ func filterExpiredUnlockingInfo(s *modules.ModuleContract, stakeAddress common.A
 	return expiredSum, nil
 }
 
-func setUnlockingInfo(s *modules.ModuleContract, unlockingInfo *UnlockingInfo) error {
+func setUnlockingInfo(s *contract.ModuleContract, unlockingInfo *UnlockingInfo) error {
 	key := unlockingInfoKey(unlockingInfo.StakeAddress)
 	store, err := rlp.EncodeToBytes(unlockingInfo)
 	if err != nil {
@@ -591,12 +590,12 @@ func setUnlockingInfo(s *modules.ModuleContract, unlockingInfo *UnlockingInfo) e
 	return nil
 }
 
-func delUnlockingInfo(s *modules.ModuleContract, stakeAddress common.Address) {
+func delUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) {
 	key := unlockingInfoKey(stakeAddress)
 	del(s, key)
 }
 
-func getUnlockingInfo(s *modules.ModuleContract, stakeAddress common.Address) (*UnlockingInfo, error) {
+func getUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) (*UnlockingInfo, error) {
 	unlockingInfo := &UnlockingInfo{
 		StakeAddress:   stakeAddress,
 		UnlockingStake: make([]*UnlockingStake, 0),
@@ -615,12 +614,12 @@ func getUnlockingInfo(s *modules.ModuleContract, stakeAddress common.Address) (*
 	return unlockingInfo, nil
 }
 
-func setCurrentEpoch(s *modules.ModuleContract, ID *big.Int) {
+func setCurrentEpoch(s *contract.ModuleContract, ID *big.Int) {
 	key := currentEpochKey()
 	set(s, key, ID.Bytes())
 }
 
-func getCurrentEpoch(s *modules.ModuleContract) (*big.Int, error) {
+func getCurrentEpoch(s *contract.ModuleContract) (*big.Int, error) {
 	key := currentEpochKey()
 	store, err := get(s, key)
 	if err != nil {
@@ -629,7 +628,7 @@ func getCurrentEpoch(s *modules.ModuleContract) (*big.Int, error) {
 	return new(big.Int).SetBytes(store), nil
 }
 
-func setCurrentEpochInfo(s *modules.ModuleContract, epochInfo *EpochInfo) error {
+func setCurrentEpochInfo(s *contract.ModuleContract, epochInfo *EpochInfo) error {
 	// set current epoch
 	setCurrentEpoch(s, epochInfo.ID)
 	//set epoch info
@@ -654,7 +653,7 @@ func setGenesisEpochInfo(s *state.CacheDB, epochInfo *EpochInfo) error {
 	return nil
 }
 
-func GetCurrentEpochInfoImpl(s *modules.ModuleContract) (*EpochInfo, error) {
+func GetCurrentEpochInfoImpl(s *contract.ModuleContract) (*EpochInfo, error) {
 	ID, err := getCurrentEpoch(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetCurrentEpochInfoImpl, getCurrentEpochInfo error: %v", err)
@@ -687,7 +686,7 @@ func GetCurrentEpochInfoFromDB(s *state.StateDB) (*EpochInfo, error) {
 	return epochInfo, nil
 }
 
-func setEpochInfo(s *modules.ModuleContract, epochInfo *EpochInfo) error {
+func setEpochInfo(s *contract.ModuleContract, epochInfo *EpochInfo) error {
 	key := epochInfoKey(epochInfo.ID)
 	store, err := rlp.EncodeToBytes(epochInfo)
 	if err != nil {
@@ -697,7 +696,7 @@ func setEpochInfo(s *modules.ModuleContract, epochInfo *EpochInfo) error {
 	return nil
 }
 
-func getEpochInfo(s *modules.ModuleContract, ID *big.Int) (*EpochInfo, error) {
+func getEpochInfo(s *contract.ModuleContract, ID *big.Int) (*EpochInfo, error) {
 	epochInfo := new(EpochInfo)
 	key := epochInfoKey(ID)
 	store, err := get(s, key)
@@ -738,7 +737,7 @@ func setGenesisCommunityInfo(s *state.CacheDB, communityInfo *CommunityInfo) err
 	return nil
 }
 
-func SetCommunityInfo(s *modules.ModuleContract, communityInfo *CommunityInfo) error {
+func SetCommunityInfo(s *contract.ModuleContract, communityInfo *CommunityInfo) error {
 	if communityInfo.CommunityRate.Cmp(PercentDecimal) > 0 {
 		return fmt.Errorf("setCommunityInfo, CommunityRate over size")
 	}
@@ -751,7 +750,7 @@ func SetCommunityInfo(s *modules.ModuleContract, communityInfo *CommunityInfo) e
 	return nil
 }
 
-func GetCommunityInfoImpl(s *modules.ModuleContract) (*CommunityInfo, error) {
+func GetCommunityInfoImpl(s *contract.ModuleContract) (*CommunityInfo, error) {
 	communityInfo := new(CommunityInfo)
 	key := communityInfoKey()
 	store, err := get(s, key)
@@ -783,7 +782,7 @@ func GetCommunityInfoFromDB(s *state.StateDB) (*CommunityInfo, error) {
 // `consensus sign` storage
 //
 // ====================================================================
-func storeSign(s *modules.ModuleContract, sign *ConsensusSign) error {
+func storeSign(s *contract.ModuleContract, sign *ConsensusSign) error {
 	key := signKey(sign.Hash())
 	value, err := rlp.EncodeToBytes(sign)
 	if err != nil {
@@ -793,12 +792,12 @@ func storeSign(s *modules.ModuleContract, sign *ConsensusSign) error {
 	return nil
 }
 
-func delSign(s *modules.ModuleContract, hash common.Hash) {
+func delSign(s *contract.ModuleContract, hash common.Hash) {
 	key := signKey(hash)
 	del(s, key)
 }
 
-func getSign(s *modules.ModuleContract, hash common.Hash) (*ConsensusSign, error) {
+func getSign(s *contract.ModuleContract, hash common.Hash) (*ConsensusSign, error) {
 	key := signKey(hash)
 	value, err := get(s, key)
 	if err != nil {
@@ -811,7 +810,7 @@ func getSign(s *modules.ModuleContract, hash common.Hash) (*ConsensusSign, error
 	return sign, nil
 }
 
-func storeSigner(s *modules.ModuleContract, hash common.Hash, signer common.Address) error {
+func storeSigner(s *contract.ModuleContract, hash common.Hash, signer common.Address) error {
 	data, err := getSigners(s, hash)
 	if err != nil {
 		if err.Error() == ErrEof.Error() {
@@ -833,7 +832,7 @@ func storeSigner(s *modules.ModuleContract, hash common.Hash, signer common.Addr
 	return nil
 }
 
-func findSigner(s *modules.ModuleContract, hash common.Hash, signer common.Address) bool {
+func findSigner(s *contract.ModuleContract, hash common.Hash, signer common.Address) bool {
 	list, err := getSigners(s, hash)
 	if err != nil {
 		return false
@@ -846,7 +845,7 @@ func findSigner(s *modules.ModuleContract, hash common.Hash, signer common.Addre
 	return false
 }
 
-func getSigners(s *modules.ModuleContract, hash common.Hash) ([]common.Address, error) {
+func getSigners(s *contract.ModuleContract, hash common.Hash) ([]common.Address, error) {
 	key := signerKey(hash)
 	value, err := get(s, key)
 	if err != nil {
@@ -860,7 +859,7 @@ func getSigners(s *modules.ModuleContract, hash common.Hash) ([]common.Address, 
 	return list.List, nil
 }
 
-func getSignerSize(s *modules.ModuleContract, hash common.Hash) int {
+func getSignerSize(s *contract.ModuleContract, hash common.Hash) int {
 	list, err := getSigners(s, hash)
 	if err != nil {
 		return 0
@@ -868,7 +867,7 @@ func getSignerSize(s *modules.ModuleContract, hash common.Hash) int {
 	return len(list)
 }
 
-func clearSigner(s *modules.ModuleContract, hash common.Hash) {
+func clearSigner(s *contract.ModuleContract, hash common.Hash) {
 	key := signerKey(hash)
 	del(s, key)
 }
@@ -879,15 +878,15 @@ func clearSigner(s *modules.ModuleContract, hash common.Hash) {
 //
 // ====================================================================
 
-func get(s *modules.ModuleContract, key []byte) ([]byte, error) {
+func get(s *contract.ModuleContract, key []byte) ([]byte, error) {
 	return customGet(s.GetCacheDB(), key)
 }
 
-func set(s *modules.ModuleContract, key, value []byte) {
+func set(s *contract.ModuleContract, key, value []byte) {
 	customSet(s.GetCacheDB(), key, value)
 }
 
-func del(s *modules.ModuleContract, key []byte) {
+func del(s *contract.ModuleContract, key []byte) {
 	customDel(s.GetCacheDB(), key)
 }
 
@@ -917,77 +916,77 @@ func customDel(db *state.CacheDB, key []byte) {
 // ====================================================================
 
 func globalConfigKey() []byte {
-	return utils2.ConcatKey(this, []byte(SKP_GLOBAL_CONFIG))
+	return contract.ConcatKey(this, []byte(SKP_GLOBAL_CONFIG))
 }
 
 func validatorKey(consensusAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_VALIDATOR), consensusAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_VALIDATOR), consensusAddr[:])
 }
 
 func signerAddrKey(signerAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_SIGNER_ADDR), signerAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_SIGNER_ADDR), signerAddr[:])
 }
 
 func proposalAddrKey(proposalAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_PROPOSAL_ADDR), proposalAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_PROPOSAL_ADDR), proposalAddr[:])
 }
 
 func allValidatorKey() []byte {
-	return utils2.ConcatKey(this, []byte(SKP_ALL_VALIDATOR))
+	return contract.ConcatKey(this, []byte(SKP_ALL_VALIDATOR))
 }
 
 func totalPoolKey() []byte {
-	return utils2.ConcatKey(this, []byte(SKP_TOTAL_POOL))
+	return contract.ConcatKey(this, []byte(SKP_TOTAL_POOL))
 }
 
 func stakeInfoKey(stakeAddress common.Address, consensusAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_STAKE_INFO), stakeAddress[:], consensusAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_STAKE_INFO), stakeAddress[:], consensusAddr[:])
 }
 
 func unlockingInfoKey(stakeAddress common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_UNLOCK_INFO), stakeAddress[:])
+	return contract.ConcatKey(this, []byte(SKP_UNLOCK_INFO), stakeAddress[:])
 }
 
 func currentEpochKey() []byte {
-	return utils2.ConcatKey(this, []byte(SKP_CURRENT_EPOCH))
+	return contract.ConcatKey(this, []byte(SKP_CURRENT_EPOCH))
 }
 
 func epochInfoKey(ID *big.Int) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_EPOCH_INFO), ID.Bytes())
+	return contract.ConcatKey(this, []byte(SKP_EPOCH_INFO), ID.Bytes())
 }
 
 func accumulatedCommissionKey(consensusAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_ACCUMULATED_COMMISSION), consensusAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_ACCUMULATED_COMMISSION), consensusAddr[:])
 }
 
 func validatorAccumulatedRewardsKey(consensusAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_VALIDATOR_ACCUMULATED_REWARDS), consensusAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_VALIDATOR_ACCUMULATED_REWARDS), consensusAddr[:])
 }
 
 func validatorOutstandingRewardsKey(consensusAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_VALIDATOR_OUTSTANDING_REWARDS), consensusAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_VALIDATOR_OUTSTANDING_REWARDS), consensusAddr[:])
 }
 
 func outstandingRewardsKey() []byte {
-	return utils2.ConcatKey(this, []byte(SKP_OUTSTANDING_REWARDS))
+	return contract.ConcatKey(this, []byte(SKP_OUTSTANDING_REWARDS))
 }
 
 func validatorSnapshotRewardsKey(consensusAddr common.Address, period uint64) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_VALIDATOR_SNAPSHOT_REWARDS), consensusAddr[:], utils2.Uint64Bytes(period))
+	return contract.ConcatKey(this, []byte(SKP_VALIDATOR_SNAPSHOT_REWARDS), consensusAddr[:], contract.Uint64Bytes(period))
 }
 
 func stakeStartingInfoKey(stakeAddress common.Address, consensusAddr common.Address) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_STAKE_STARTING_INFO), stakeAddress[:], consensusAddr[:])
+	return contract.ConcatKey(this, []byte(SKP_STAKE_STARTING_INFO), stakeAddress[:], consensusAddr[:])
 }
 
 func signKey(hash common.Hash) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_SIGN), hash.Bytes())
+	return contract.ConcatKey(this, []byte(SKP_SIGN), hash.Bytes())
 }
 
 func signerKey(hash common.Hash) []byte {
-	return utils2.ConcatKey(this, []byte(SKP_SIGNER), hash.Bytes())
+	return contract.ConcatKey(this, []byte(SKP_SIGNER), hash.Bytes())
 }
 
 func communityInfoKey() []byte {
-	return utils2.ConcatKey(this, []byte(SKP_COMMUNITY_INFO))
+	return contract.ConcatKey(this, []byte(SKP_COMMUNITY_INFO))
 }

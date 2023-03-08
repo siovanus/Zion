@@ -18,7 +18,7 @@
 package common
 
 import (
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -35,7 +35,7 @@ const (
 )
 
 type ChainHandler interface {
-	MakeDepositProposal(service *modules.ModuleContract) (*MakeTxParam, error)
+	MakeDepositProposal(service *contract.ModuleContract) (*MakeTxParam, error)
 }
 
 type MakeTxParam struct {

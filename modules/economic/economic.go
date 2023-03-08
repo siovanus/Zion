@@ -20,10 +20,10 @@ package economic
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
-	node_manager2 "github.com/ethereum/go-ethereum/modules/node_manager"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
+	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/params"
@@ -44,10 +44,10 @@ var (
 
 func InitEconomic() {
 	InitABI()
-	modules.Contracts[this] = RegisterEconomicContract
+	contract.Contracts[this] = RegisterEconomicContract
 }
 
-func RegisterEconomicContract(s *modules.ModuleContract) {
+func RegisterEconomicContract(s *contract.ModuleContract) {
 	s.Prepare(ABI, gasTable)
 
 	s.Register(MethodName, Name)
@@ -55,11 +55,11 @@ func RegisterEconomicContract(s *modules.ModuleContract) {
 	s.Register(MethodReward, Reward)
 }
 
-func Name(s *modules.ModuleContract) ([]byte, error) {
+func Name(s *contract.ModuleContract) ([]byte, error) {
 	return new(MethodContractNameOutput).Encode()
 }
 
-func TotalSupply(s *modules.ModuleContract) ([]byte, error) {
+func TotalSupply(s *contract.ModuleContract) ([]byte, error) {
 	height := s.ContractRef().BlockHeight()
 
 	supply := GenesisSupply
@@ -67,20 +67,20 @@ func TotalSupply(s *modules.ModuleContract) ([]byte, error) {
 		reward := new(big.Int).Mul(height, RewardPerBlock)
 		supply = new(big.Int).Add(supply, reward)
 	}
-	return utils2.PackOutputs(ABI, MethodTotalSupply, supply)
+	return contract.PackOutputs(ABI, MethodTotalSupply, supply)
 }
 
-func Reward(s *modules.ModuleContract) ([]byte, error) {
+func Reward(s *contract.ModuleContract) ([]byte, error) {
 
-	community, err := node_manager2.GetCommunityInfoFromDB(s.StateDB())
+	community, err := node_manager.GetCommunityInfoFromDB(s.StateDB())
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityInfo failed, err: %v", err)
 	}
 
 	// allow empty address as reward pool
 	poolAddr := community.CommunityAddress
-	rewardPerBlock := node_manager2.NewDecFromBigInt(RewardPerBlock)
-	rewardFactor := node_manager2.NewDecFromBigInt(community.CommunityRate)
+	rewardPerBlock := node_manager.NewDecFromBigInt(RewardPerBlock)
+	rewardFactor := node_manager.NewDecFromBigInt(community.CommunityRate)
 	poolRwdAmt, err := rewardPerBlock.MulWithPercentDecimal(rewardFactor)
 	if err != nil {
 		return nil, fmt.Errorf("Calculate pool reward amount failed, err: %v ", err)
@@ -95,7 +95,7 @@ func Reward(s *modules.ModuleContract) ([]byte, error) {
 		Amount:  poolRwdAmt.BigInt(),
 	}
 	stakingRwd := &RewardAmount{
-		Address: utils2.NodeManagerContractAddress,
+		Address: cfg.NodeManagerContractAddress,
 		Amount:  stakingRwdAmt.BigInt(),
 	}
 

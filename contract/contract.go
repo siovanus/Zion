@@ -15,17 +15,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The Zion.  If not, see <http://www.gnu.org/licenses/>.
  */
-package modules
+
+package contract
 
 import (
 	"fmt"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
-	"time"
-
 	abiPkg "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/log"
+	"math/big"
 )
 
 type (
@@ -34,8 +34,7 @@ type (
 )
 
 var (
-	Contracts           = make(map[common.Address]RegisterService)
-	DebugSpentOpen bool = true
+	Contracts = make(map[common.Address]RegisterService)
 )
 
 // the gasUsage for the native contract transaction calculated according to the following formula:
@@ -52,8 +51,6 @@ type ModuleContract struct {
 	handlers map[string]MethodHandler // map method id to method handler
 	gasTable map[string]uint64        // map method id to gas usage
 	ab       *abiPkg.ABI
-
-	testPoint int64 // last test time
 }
 
 func NewModuleContract(db *state.StateDB, ref *ContractRef) *ModuleContract {
@@ -80,14 +77,14 @@ func (s *ModuleContract) Prepare(ab *abiPkg.ABI, gasTb map[string]uint64) {
 	s.ab = ab
 	s.gasTable = make(map[string]uint64)
 	for name, gas := range gasTb {
-		id := utils2.MethodID(s.ab, name)
+		id := MethodID(s.ab, name)
 		final := uint64(float64(basicGas) + float64(gas)*gasRatio)
 		s.gasTable[id] = final
 	}
 }
 
 func (s *ModuleContract) Register(name string, handler MethodHandler) {
-	methodID := utils2.MethodID(s.ab, name)
+	methodID := MethodID(s.ab, name)
 	s.handlers[methodID] = handler
 }
 
@@ -177,11 +174,11 @@ func (s *ModuleContract) AddNotify(abi *abiPkg.ABI, topics []string, data ...int
 		topicIDs = append(topicIDs, topicID)
 	}
 
-	packedData, err := utils2.PackEvents(abi, topic, data...)
+	packedData, err := PackEvents(abi, topic, data...)
 	if err != nil {
 		return fmt.Errorf("AddNotify, PackEvents error: %v", err)
 	}
-	emitter := utils2.NewEventEmitter(s.ref.CurrentContext().ContractAddress, s.ContractRef().BlockHeight().Uint64(), s.StateDB())
+	emitter := NewEventEmitter(s.ref.CurrentContext().ContractAddress, s.ContractRef().BlockHeight().Uint64(), s.StateDB())
 	emitter.Event(topicIDs, packedData)
 
 	return nil
@@ -205,17 +202,175 @@ func getTopicAndEvent(abi *abiPkg.ABI, topic string) (string, *abiPkg.Event, err
 	return topic, nil, fmt.Errorf("topic %s not exist", topic)
 }
 
-func (s *ModuleContract) BreakPoint() uint64 {
-	if !DebugSpentOpen {
-		return 0
-	}
+// support module functions to evm functions.
+type EVMHandler func(caller, addr common.Address, gas uint64, input []byte) ([]byte, uint64, error)
 
-	if s.testPoint == 0 {
-		s.testPoint = time.Now().UnixNano()
-		return 0
-	} else {
-		lastTime := s.testPoint
-		s.testPoint = time.Now().UnixNano()
-		return uint64(s.testPoint-lastTime) / uint64(time.Microsecond)
+type ContractRef struct {
+	contexts []*Context
+
+	stateDB     *state.StateDB
+	blockHeight *big.Int
+	origin      common.Address
+	txHash      common.Hash
+	caller     common.Address
+	evmHandler EVMHandler
+	gasLeft    uint64
+	value       *big.Int
+	txTo        common.Address
+}
+
+func NewContractRef(
+	db *state.StateDB,
+	origin common.Address,
+	caller common.Address,
+	blockHeight *big.Int,
+	txHash common.Hash,
+	suppliedGas uint64,
+	evmHandler EVMHandler) *ContractRef {
+
+	return &ContractRef{
+		contexts:    make([]*Context, 0),
+		stateDB:     db,
+		origin:      origin,
+		caller:      caller,
+		blockHeight: blockHeight,
+		txHash:      txHash,
+		gasLeft:     suppliedGas,
+		evmHandler:  evmHandler,
+		txTo:        common.EmptyAddress,
+		value:       common.Big0,
 	}
+}
+
+func (s *ContractRef) ModuleCall(
+	caller,
+	contractAddr common.Address,
+	payload []byte,
+) (ret []byte, gasLeft uint64, err error) {
+
+	s.PushContext(&Context{
+		Caller:          caller,
+		ContractAddress: contractAddr,
+		Payload:         payload,
+	})
+	defer s.PopContext()
+
+	contract := NewModuleContract(s.stateDB, s)
+	ret, err = contract.Invoke()
+	gasLeft = s.gasLeft
+	if err != nil {
+		log.Error("Module contract", "invoke err", err, "txhash", s.txHash.Hex())
+	}
+	return
+}
+
+func (s *ContractRef) EVMCall(caller, contractAddr common.Address, gas uint64, input []byte) ([]byte, uint64, error) {
+	if s.evmHandler == nil {
+		return nil, 0, nil
+	}
+	return s.evmHandler(caller, contractAddr, gas, input)
+}
+
+func (s *ContractRef) SetValue(value *big.Int) {
+	if value != nil && value.Cmp(common.Big0) > 0 {
+		s.value = value
+	}
+}
+
+// Value retrieve tx.value
+func (s *ContractRef) Value() *big.Int {
+	return s.value
+}
+
+func (s *ContractRef) SetTo(to common.Address) {
+	if to != common.EmptyAddress {
+		s.txTo = to
+	}
+}
+
+// To retrieve tx.to
+func (s *ContractRef) TxTo() common.Address {
+	return s.txTo
+}
+
+func (s *ContractRef) StateDB() *state.StateDB {
+	return s.stateDB
+}
+
+func (s *ContractRef) BlockHeight() *big.Int {
+	return s.blockHeight
+}
+
+func (s *ContractRef) TxHash() common.Hash {
+	return s.txHash
+}
+
+// MsgSender implement solidity grammar `msg.sender`
+func (s *ContractRef) MsgSender() common.Address {
+	return s.caller
+}
+
+// TxOrigin implement solidity grammar `tx.origin`
+func (s *ContractRef) TxOrigin() common.Address {
+	return s.origin
+}
+
+func (s *ContractRef) GasLeft() uint64 {
+	return s.gasLeft
+}
+
+const (
+	MAX_EXECUTE_CONTEXT = 128
+)
+
+type Context struct {
+	Caller          common.Address
+	ContractAddress common.Address
+	Payload         []byte
+}
+
+// PushContext push current context to smart contract
+func (s *ContractRef) PushContext(context *Context) {
+	s.contexts = append(s.contexts, context)
+}
+
+// CurrentContext return smart contract current context
+func (s *ContractRef) CurrentContext() *Context {
+	if len(s.contexts) < 1 {
+		return nil
+	}
+	return s.contexts[len(s.contexts)-1]
+}
+
+// PopContext pop smart contract current context
+func (s *ContractRef) PopContext() {
+	if len(s.contexts) > 1 {
+		s.contexts = s.contexts[:len(s.contexts)-1]
+	}
+}
+
+// CallingContext return smart contract caller context
+func (s *ContractRef) CallingContext() *Context {
+	if len(s.contexts) < 2 {
+		return nil
+	}
+	return s.contexts[len(s.contexts)-2]
+}
+
+// EntryContext return smart contract entry entrance context
+func (s *ContractRef) EntryContext() *Context {
+	if len(s.contexts) < 1 {
+		return nil
+	}
+	return s.contexts[0]
+}
+
+func (s *ContractRef) CheckContexts() bool {
+	if len(s.contexts) == 0 {
+		return false
+	}
+	if len(s.contexts) > MAX_EXECUTE_CONTEXT {
+		return false
+	}
+	return true
 }

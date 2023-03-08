@@ -20,6 +20,7 @@ package economic
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
 	node_manager2 "github.com/ethereum/go-ethereum/modules/node_manager"
@@ -52,7 +53,7 @@ func TestName(t *testing.T) {
 	raw, err := modules.TestNativeCall(t, this, name, payload)
 	assert.NoError(t, err)
 	var got string
-	assert.NoError(t, utils2.UnpackOutputs(ABI, name, &got, raw))
+	assert.NoError(t, contract.UnpackOutputs(ABI, name, &got, raw))
 	assert.Equal(t, expect, got)
 }
 
@@ -87,7 +88,7 @@ func TestTotalSupply(t *testing.T) {
 			assert.NoError(t, err)
 			supply = *abi.ConvertType(output[0], new(*big.Int)).(**big.Int)
 		} else {
-			assert.NoError(t, utils2.UnpackOutputs(ABI, name, &supply, raw))
+			assert.NoError(t, contract.UnpackOutputs(ABI, name, &supply, raw))
 		}
 
 		got := new(big.Int).Div(supply, params.ZNT1)

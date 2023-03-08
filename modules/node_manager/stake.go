@@ -21,12 +21,12 @@ package node_manager
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules/helper"
 	"math/big"
 )
 
-func deposit(s *modules.ModuleContract, from common.Address, amount Dec, validator *Validator) error {
+func deposit(s *contract.ModuleContract, from common.Address, amount Dec, validator *Validator) error {
 	// get deposit info
 	stakeInfo, found, err := getStakeInfo(s, from, validator.ConsensusAddress)
 	if err != nil {
@@ -70,7 +70,7 @@ func deposit(s *modules.ModuleContract, from common.Address, amount Dec, validat
 	return nil
 }
 
-func unStake(s *modules.ModuleContract, from common.Address, amount Dec, validator *Validator) error {
+func unStake(s *contract.ModuleContract, from common.Address, amount Dec, validator *Validator) error {
 	height := s.ContractRef().BlockHeight()
 	globalConfig, err := GetGlobalConfigImpl(s)
 	if err != nil {

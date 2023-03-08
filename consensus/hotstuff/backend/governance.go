@@ -20,8 +20,8 @@ package backend
 
 import (
 	"fmt"
-	node_manager2 "github.com/ethereum/go-ethereum/modules/node_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
+	"github.com/ethereum/go-ethereum/modules/cfg"
+	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -33,8 +33,8 @@ import (
 )
 
 var (
-	contractAddr = utils.NodeManagerContractAddress
-	specMethod   = node_manager2.GetSpecMethodID()
+	contractAddr = cfg.NodeManagerContractAddress
+	specMethod   = node_manager.GetSpecMethodID()
 )
 
 // FillHeader fulfill the header with validators for miner worker. there are 2 conditions:
@@ -152,7 +152,7 @@ func (s *backend) execEpochChange(state *state.StateDB, header *types.Header, ct
 		return nil
 	}
 
-	payload, err := new(node_manager2.ChangeEpochParam).Encode()
+	payload, err := new(node_manager.ChangeEpochParam).Encode()
 	if err != nil {
 		return err
 	}
@@ -165,8 +165,8 @@ func (s *backend) execEpochChange(state *state.StateDB, header *types.Header, ct
 }
 
 // getGovernanceInfo call governance contract method and retrieve related info.
-func (s *backend) getGovernanceInfo(state *state.StateDB) (*node_manager2.EpochInfo, error) {
-	epoch, err := node_manager2.GetCurrentEpochInfoFromDB(state)
+func (s *backend) getGovernanceInfo(state *state.StateDB) (*node_manager.EpochInfo, error) {
+	epoch, err := node_manager.GetCurrentEpochInfoFromDB(state)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (s *backend) getGovernanceInfo(state *state.StateDB) (*node_manager2.EpochI
 
 // execEndBlock execute governance contract method of `EndBlock`
 func (s *backend) execEndBlock(ctx *systemTxContext) error {
-	payload, err := new(node_manager2.EndBlockParam).Encode()
+	payload, err := new(node_manager.EndBlockParam).Encode()
 	if err != nil {
 		return err
 	}

@@ -22,11 +22,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/proposal_manager_abi"
 	"github.com/ethereum/go-ethereum/modules/helper"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 )
@@ -55,10 +55,10 @@ var (
 
 func InitProposalManager() {
 	InitABI()
-	modules.Contracts[this] = RegisterProposalManagerContract
+	contract.Contracts[this] = RegisterProposalManagerContract
 }
 
-func RegisterProposalManagerContract(s *modules.ModuleContract) {
+func RegisterProposalManagerContract(s *contract.ModuleContract) {
 	s.Prepare(ABI, gasTable)
 
 	s.Register(MethodPropose, Propose)
@@ -71,7 +71,7 @@ func RegisterProposalManagerContract(s *modules.ModuleContract) {
 	s.Register(MethodGetCommunityProposalList, GetCommunityProposalList)
 }
 
-func Propose(s *modules.ModuleContract) ([]byte, error) {
+func Propose(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	height := s.ContractRef().BlockHeight()
 	caller := ctx.Caller
@@ -85,15 +85,15 @@ func Propose(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Propose, GetGlobalConfigImpl error: %v", err)
 	}
-	if toAddress != utils2.ProposalManagerContractAddress {
-		return nil, fmt.Errorf("Propose, to address %x must be proposal manager contract address %x", toAddress, utils2.ProposalManagerContractAddress)
+	if toAddress != cfg.ProposalManagerContractAddress {
+		return nil, fmt.Errorf("Propose, to address %x must be proposal manager contract address %x", toAddress, cfg.ProposalManagerContractAddress)
 	}
 	if value.Cmp(globalConfig.MinProposalStake) == -1 {
 		return nil, fmt.Errorf("Propose, value is less than globalConfig.MinProposalStake")
 	}
 
 	params := &ProposeParam{}
-	if err := utils2.UnpackMethod(ABI, MethodPropose, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodPropose, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("Propose, unpack params error: %v", err)
 	}
 
@@ -142,10 +142,10 @@ func Propose(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("Propose, AddNotify error: %v", err)
 	}
 
-	return utils2.PackOutputs(ABI, MethodPropose, true)
+	return contract.PackOutputs(ABI, MethodPropose, true)
 }
 
-func ProposeConfig(s *modules.ModuleContract) ([]byte, error) {
+func ProposeConfig(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	height := s.ContractRef().BlockHeight()
 	caller := ctx.Caller
@@ -159,15 +159,15 @@ func ProposeConfig(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Propose, GetGlobalConfigImpl error: %v", err)
 	}
-	if toAddress != utils2.ProposalManagerContractAddress {
-		return nil, fmt.Errorf("ProposeConfig, to address %x must be proposal manager contract address %x", toAddress, utils2.ProposalManagerContractAddress)
+	if toAddress != cfg.ProposalManagerContractAddress {
+		return nil, fmt.Errorf("ProposeConfig, to address %x must be proposal manager contract address %x", toAddress, cfg.ProposalManagerContractAddress)
 	}
 	if value.Cmp(globalConfig.MinProposalStake) == -1 {
 		return nil, fmt.Errorf("ProposeConfig, value is less than globalConfig.MinProposalStake")
 	}
 
 	params := &ProposeConfigParam{}
-	if err := utils2.UnpackMethod(ABI, MethodProposeConfig, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodProposeConfig, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("ProposeConfig, unpack params error: %v", err)
 	}
 
@@ -238,10 +238,10 @@ func ProposeConfig(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ProposeConfig, AddNotify error: %v", err)
 	}
 
-	return utils2.PackOutputs(ABI, MethodProposeConfig, true)
+	return contract.PackOutputs(ABI, MethodProposeConfig, true)
 }
 
-func ProposeCommunity(s *modules.ModuleContract) ([]byte, error) {
+func ProposeCommunity(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	height := s.ContractRef().BlockHeight()
 	caller := ctx.Caller
@@ -255,15 +255,15 @@ func ProposeCommunity(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Propose, GetGlobalConfigImpl error: %v", err)
 	}
-	if toAddress != utils2.ProposalManagerContractAddress {
-		return nil, fmt.Errorf("ProposeCommunity, to address %x must be proposal manager contract address %x", toAddress, utils2.ProposalManagerContractAddress)
+	if toAddress != cfg.ProposalManagerContractAddress {
+		return nil, fmt.Errorf("ProposeCommunity, to address %x must be proposal manager contract address %x", toAddress, cfg.ProposalManagerContractAddress)
 	}
 	if value.Cmp(globalConfig.MinProposalStake) == -1 {
 		return nil, fmt.Errorf("ProposeCommunity, value is less than globalConfig.MinProposalStake")
 	}
 
 	params := &ProposeCommunityParam{}
-	if err := utils2.UnpackMethod(ABI, MethodProposeCommunity, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodProposeCommunity, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("ProposeCommunity, unpack params error: %v", err)
 	}
 
@@ -324,15 +324,15 @@ func ProposeCommunity(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ProposeConfig, AddNotify error: %v", err)
 	}
 
-	return utils2.PackOutputs(ABI, MethodProposeCommunity, true)
+	return contract.PackOutputs(ABI, MethodProposeCommunity, true)
 }
 
-func VoteProposal(s *modules.ModuleContract) ([]byte, error) {
+func VoteProposal(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 
 	params := &VoteProposalParam{}
-	if err := utils2.UnpackMethod(ABI, MethodVoteProposal, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodVoteProposal, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("VoteProposal, unpack params error: %v", err)
 	}
 
@@ -342,7 +342,7 @@ func VoteProposal(s *modules.ModuleContract) ([]byte, error) {
 	}
 
 	if proposal.Status == PASS {
-		return utils2.PackOutputs(ABI, MethodVoteProposal, true)
+		return contract.PackOutputs(ABI, MethodVoteProposal, true)
 	}
 	if proposal.Status == FAIL || proposal.EndHeight.Cmp(s.ContractRef().BlockHeight()) < 0 {
 		return nil, fmt.Errorf("VoteProposal, proposal already failed")
@@ -499,13 +499,13 @@ func VoteProposal(s *modules.ModuleContract) ([]byte, error) {
 			return nil, fmt.Errorf("VoteProposal, AddNotify error: %v", err)
 		}
 	}
-	return utils2.PackOutputs(ABI, MethodVoteProposal, true)
+	return contract.PackOutputs(ABI, MethodVoteProposal, true)
 }
 
-func GetProposal(s *modules.ModuleContract) ([]byte, error) {
+func GetProposal(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &GetProposalParam{}
-	if err := utils2.UnpackMethod(ABI, MethodGetProposal, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetProposal, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("VoteProposal, unpack params error: %v", err)
 	}
 
@@ -518,10 +518,10 @@ func GetProposal(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetProposal, serialize proposal error: %v", err)
 	}
-	return utils2.PackOutputs(ABI, MethodGetProposal, enc)
+	return contract.PackOutputs(ABI, MethodGetProposal, enc)
 }
 
-func GetProposalList(s *modules.ModuleContract) ([]byte, error) {
+func GetProposalList(s *contract.ModuleContract) ([]byte, error) {
 	proposalList, err := getProposalList(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetProposalList, getProposalList error: %v", err)
@@ -531,10 +531,10 @@ func GetProposalList(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetProposalList, serialize proposal list error: %v", err)
 	}
-	return utils2.PackOutputs(ABI, MethodGetProposalList, enc)
+	return contract.PackOutputs(ABI, MethodGetProposalList, enc)
 }
 
-func GetConfigProposalList(s *modules.ModuleContract) ([]byte, error) {
+func GetConfigProposalList(s *contract.ModuleContract) ([]byte, error) {
 	configProposalList, err := getConfigProposalList(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetConfigProposalList, getConfigProposalList error: %v", err)
@@ -544,10 +544,10 @@ func GetConfigProposalList(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetConfigProposalList, serialize config proposal list error: %v", err)
 	}
-	return utils2.PackOutputs(ABI, MethodGetConfigProposalList, enc)
+	return contract.PackOutputs(ABI, MethodGetConfigProposalList, enc)
 }
 
-func GetCommunityProposalList(s *modules.ModuleContract) ([]byte, error) {
+func GetCommunityProposalList(s *contract.ModuleContract) ([]byte, error) {
 	communityProposalList, err := getCommunityProposalList(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityProposalList, getCommunityProposalList error: %v", err)
@@ -557,5 +557,5 @@ func GetCommunityProposalList(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityProposalList, serialize community proposal list error: %v", err)
 	}
-	return utils2.PackOutputs(ABI, MethodGetCommunityProposalList, enc)
+	return contract.PackOutputs(ABI, MethodGetCommunityProposalList, enc)
 }

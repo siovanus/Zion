@@ -20,8 +20,8 @@ package node_manager
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math"
 	"math/big"
@@ -45,7 +45,7 @@ func (m *AllValidators) Decode(payload []byte) error {
 	var data struct {
 		AllValidators []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetAllValidators, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetAllValidators, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.AllValidators, m)
@@ -69,7 +69,7 @@ func (m *Validator) Decode(payload []byte) error {
 	var data struct {
 		Validator []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetValidator, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetValidator, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.Validator, m)
@@ -118,7 +118,7 @@ func (m *GlobalConfig) Decode(payload []byte) error {
 	var data struct {
 		GlobalConfig []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetGlobalConfig, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetGlobalConfig, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.GlobalConfig, m)
@@ -134,7 +134,7 @@ func (m *StakeInfo) Decode(payload []byte) error {
 	var data struct {
 		StakeInfo []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetStakeInfo, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetStakeInfo, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.StakeInfo, m)
@@ -149,7 +149,7 @@ func (m *UnlockingInfo) Decode(payload []byte) error {
 	var data struct {
 		UnlockingInfo []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetUnlockingInfo, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetUnlockingInfo, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.UnlockingInfo, m)
@@ -176,7 +176,7 @@ func (m *EpochInfo) Decode(payload []byte) error {
 	var data struct {
 		EpochInfo []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetCurrentEpochInfo, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetCurrentEpochInfo, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.EpochInfo, m)
@@ -225,7 +225,7 @@ func (m *AccumulatedCommission) Decode(payload []byte) error {
 	var data struct {
 		AccumulatedCommission []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetAccumulatedCommission, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetAccumulatedCommission, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.AccumulatedCommission, m)
@@ -240,7 +240,7 @@ func (m *ValidatorAccumulatedRewards) Decode(payload []byte) error {
 	var data struct {
 		ValidatorAccumulatedRewards []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetValidatorAccumulatedRewards, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetValidatorAccumulatedRewards, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ValidatorAccumulatedRewards, m)
@@ -254,7 +254,7 @@ func (m *ValidatorOutstandingRewards) Decode(payload []byte) error {
 	var data struct {
 		ValidatorOutstandingRewards []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetValidatorOutstandingRewards, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetValidatorOutstandingRewards, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ValidatorOutstandingRewards, m)
@@ -268,7 +268,7 @@ func (m *OutstandingRewards) Decode(payload []byte) error {
 	var data struct {
 		OutstandingRewards []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetOutstandingRewards, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetOutstandingRewards, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.OutstandingRewards, m)
@@ -282,7 +282,7 @@ func (m *StakeRewards) Decode(payload []byte) error {
 	var data struct {
 		StakeRewards []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetStakeRewards, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetStakeRewards, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.StakeRewards, m)
@@ -297,7 +297,7 @@ func (m *ValidatorSnapshotRewards) Decode(payload []byte) error {
 	var data struct {
 		ValidatorSnapshotRewards []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetValidatorSnapshotRewards, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetValidatorSnapshotRewards, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ValidatorSnapshotRewards, m)
@@ -313,7 +313,7 @@ func (m *StakeStartingInfo) Decode(payload []byte) error {
 	var data struct {
 		StakeStartingInfo []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetStakeStartingInfo, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetStakeStartingInfo, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.StakeStartingInfo, m)
@@ -340,7 +340,7 @@ func (m *ConsensusSign) Hash() common.Hash {
 		Method: m.Method,
 		Input:  m.Input,
 	}
-	v := utils2.RLPHash(inf)
+	v := contract.RLPHash(inf)
 	m.hash.Store(v)
 	return v
 }
@@ -354,7 +354,7 @@ func (m *CommunityInfo) Decode(payload []byte) error {
 	var data struct {
 		CommunityInfo []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetCommunityInfo, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetCommunityInfo, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.CommunityInfo, m)
@@ -368,7 +368,7 @@ func (m *TotalPool) Decode(payload []byte) error {
 	var data struct {
 		TotalPool []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodGetTotalPool, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetTotalPool, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.TotalPool, m)

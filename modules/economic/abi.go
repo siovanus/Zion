@@ -20,8 +20,9 @@ package economic
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"io"
 	"math/big"
 	"strings"
@@ -43,13 +44,13 @@ func InitABI() {
 
 var (
 	ABI  *abi.ABI
-	this = utils2.EconomicContractAddress
+	this = cfg.EconomicContractAddress
 )
 
 type MethodContractNameInput struct{}
 
 func (m *MethodContractNameInput) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodName)
+	return contract.PackMethod(ABI, MethodName)
 }
 func (m *MethodContractNameInput) Decode(payload []byte) error { return nil }
 
@@ -59,23 +60,23 @@ type MethodContractNameOutput struct {
 
 func (m *MethodContractNameOutput) Encode() ([]byte, error) {
 	m.Name = contractName
-	return utils2.PackOutputs(ABI, MethodName, m.Name)
+	return contract.PackOutputs(ABI, MethodName, m.Name)
 }
 func (m *MethodContractNameOutput) Decode(payload []byte) error {
-	return utils2.UnpackOutputs(ABI, MethodName, m, payload)
+	return contract.UnpackOutputs(ABI, MethodName, m, payload)
 }
 
 type MethodTotalSupplyInput struct{}
 
 func (m *MethodTotalSupplyInput) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodTotalSupply)
+	return contract.PackMethod(ABI, MethodTotalSupply)
 }
 func (m *MethodTotalSupplyInput) Decode(payload []byte) error { return nil }
 
 type MethodRewardInput struct{}
 
 func (m *MethodRewardInput) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodReward)
+	return contract.PackMethod(ABI, MethodReward)
 }
 func (m *MethodRewardInput) Decode(payload []byte) error { return nil }
 
@@ -88,13 +89,13 @@ func (m *MethodRewardOutput) Encode() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utils2.PackOutputs(ABI, MethodReward, enc)
+	return contract.PackOutputs(ABI, MethodReward, enc)
 }
 func (m *MethodRewardOutput) Decode(payload []byte) error {
 	var data struct {
 		List []byte
 	}
-	if err := utils2.UnpackOutputs(ABI, MethodReward, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodReward, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.List, &m.List)

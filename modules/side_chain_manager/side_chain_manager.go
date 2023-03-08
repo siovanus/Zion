@@ -22,11 +22,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/go_abi/side_chain_manager_abi"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"sort"
@@ -48,7 +48,7 @@ const (
 )
 
 var (
-	this     = modules.ModuleContractAddrMap[modules.ModuleSideChainManager]
+	this     = cfg.ModuleContractAddrMap[cfg.ModuleSideChainManager]
 	gasTable = map[string]uint64{
 		side_chain_manager_abi.MethodGetSideChain:             9751875,
 		side_chain_manager_abi.MethodRegisterSideChain:        3635625,
@@ -67,10 +67,10 @@ var (
 
 func InitSideChainManager() {
 	ABI = GetABI()
-	modules.Contracts[this] = RegisterSideChainManagerContract
+	contract.Contracts[this] = RegisterSideChainManagerContract
 }
 
-func RegisterSideChainManagerContract(s *modules.ModuleContract) {
+func RegisterSideChainManagerContract(s *contract.ModuleContract) {
 	s.Prepare(ABI, gasTable)
 
 	// s.Register(MethodContractName, Name)
@@ -86,10 +86,10 @@ func RegisterSideChainManagerContract(s *modules.ModuleContract) {
 	s.Register(side_chain_manager_abi.MethodGetFee, GetFee)
 }
 
-func GetSideChain(s *modules.ModuleContract) ([]byte, error) {
+func GetSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ChainIDParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodGetSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodGetSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 	sideChain, err := GetSideChainObject(s, params.ChainID)
@@ -99,13 +99,13 @@ func GetSideChain(s *modules.ModuleContract) ([]byte, error) {
 	if sideChain == nil {
 		return nil, fmt.Errorf("GetSideChain error: side chain %v not exist", params.ChainID)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodGetSideChain, sideChain)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodGetSideChain, sideChain)
 }
 
-func RegisterSideChain(s *modules.ModuleContract) ([]byte, error) {
+func RegisterSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &RegisterSideChainParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodRegisterSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodRegisterSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -153,13 +153,13 @@ func RegisterSideChain(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("RegisterSideChain, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodRegisterSideChain)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodRegisterSideChain)
 }
 
-func ApproveRegisterSideChain(s *modules.ModuleContract) ([]byte, error) {
+func ApproveRegisterSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ChainIDParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -171,13 +171,13 @@ func ApproveRegisterSideChain(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, chainid is not requested")
 	}
 
-	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveRegisterSideChain, utils.GetUint64Bytes(params.ChainID),
+	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveRegisterSideChain, contract.GetUint64Bytes(params.ChainID),
 		s.ContractRef().TxOrigin(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, CheckConsensusSigns error: %v", err)
 	}
 	if !ok {
-		return utils.PackOutputs(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, true)
+		return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, true)
 	}
 
 	err = PutSideChain(s, registerSideChain)
@@ -185,18 +185,18 @@ func ApproveRegisterSideChain(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, putSideChain error: %v", err)
 	}
 
-	s.GetCacheDB().Delete(utils.ConcatKey(utils.SideChainManagerContractAddress, []byte(SIDE_CHAIN_APPLY), utils.GetUint64Bytes(params.ChainID)))
+	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(SIDE_CHAIN_APPLY), contract.GetUint64Bytes(params.ChainID)))
 	err = s.AddNotify(ABI, []string{EventApproveRegisterSideChain}, params.ChainID)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, true)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, true)
 }
 
-func UpdateSideChain(s *modules.ModuleContract) ([]byte, error) {
+func UpdateSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &RegisterSideChainParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodUpdateSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodUpdateSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -239,13 +239,13 @@ func UpdateSideChain(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("UpdateSideChain, AddNotify error: %v", err)
 	}
 
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodUpdateSideChain)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodUpdateSideChain)
 }
 
-func ApproveUpdateSideChain(s *modules.ModuleContract) ([]byte, error) {
+func ApproveUpdateSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ChainIDParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -258,13 +258,13 @@ func ApproveUpdateSideChain(s *modules.ModuleContract) ([]byte, error) {
 	}
 
 	//check consensus signs
-	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveUpdateSideChain, utils.GetUint64Bytes(params.ChainID),
+	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveUpdateSideChain, contract.GetUint64Bytes(params.ChainID),
 		s.ContractRef().TxOrigin(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveUpdateSideChain, CheckConsensusSigns error: %v", err)
 	}
 	if !ok {
-		return utils.PackOutputs(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, true)
+		return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, true)
 	}
 
 	err = PutSideChain(s, sideChain)
@@ -272,21 +272,21 @@ func ApproveUpdateSideChain(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ApproveUpdateSideChain, putSideChain error: %v", err)
 	}
 
-	chainidByte := utils.GetUint64Bytes(params.ChainID)
-	s.GetCacheDB().Delete(utils.ConcatKey(utils.SideChainManagerContractAddress, []byte(UPDATE_SIDE_CHAIN_REQUEST), chainidByte))
+	chainidByte := contract.GetUint64Bytes(params.ChainID)
+	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(UPDATE_SIDE_CHAIN_REQUEST), chainidByte))
 
 	err = s.AddNotify(ABI, []string{EventApproveUpdateSideChain}, params.ChainID)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveUpdateSideChain, AddNotify error: %v", err)
 	}
 
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, true)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, true)
 }
 
-func QuitSideChain(s *modules.ModuleContract) ([]byte, error) {
+func QuitSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ChainIDParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodQuitSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodQuitSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -309,13 +309,13 @@ func QuitSideChain(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("QuitSideChain, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodQuitSideChain)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodQuitSideChain)
 }
 
-func ApproveQuitSideChain(s *modules.ModuleContract) ([]byte, error) {
+func ApproveQuitSideChain(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ChainIDParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -325,30 +325,30 @@ func ApproveQuitSideChain(s *modules.ModuleContract) ([]byte, error) {
 	}
 
 	//check consensus signs
-	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveQuitSideChain, utils.GetUint64Bytes(params.ChainID),
+	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveQuitSideChain, contract.GetUint64Bytes(params.ChainID),
 		s.ContractRef().TxOrigin(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveQuitSideChain, CheckConsensusSigns error: %v", err)
 	}
 	if !ok {
-		return utils.PackOutputs(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, true)
+		return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, true)
 	}
 
-	chainidByte := utils.GetUint64Bytes(params.ChainID)
-	s.GetCacheDB().Delete(utils.ConcatKey(utils.SideChainManagerContractAddress, []byte(side_chain_manager_abi.MethodApproveQuitSideChain), chainidByte))
-	s.GetCacheDB().Delete(utils.ConcatKey(utils.SideChainManagerContractAddress, []byte(SIDE_CHAIN), chainidByte))
+	chainidByte := contract.GetUint64Bytes(params.ChainID)
+	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(side_chain_manager_abi.MethodApproveQuitSideChain), chainidByte))
+	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(SIDE_CHAIN), chainidByte))
 
 	err = s.AddNotify(ABI, []string{EventApproveQuitSideChain}, params.ChainID)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveQuitSideChain, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, true)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, true)
 }
 
-func RegisterAsset(s *modules.ModuleContract) ([]byte, error) {
+func RegisterAsset(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &RegisterAssetParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodRegisterAsset, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodRegisterAsset, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -381,14 +381,14 @@ func RegisterAsset(s *modules.ModuleContract) ([]byte, error) {
 	if err := PutAssetBind(s, params.ChainID, assetBind); err != nil {
 		return nil, fmt.Errorf("RegisterAsset, PutAssetBind error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodRegisterAsset, true)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodRegisterAsset, true)
 }
 
-func UpdateFee(s *modules.ModuleContract) ([]byte, error) {
+func UpdateFee(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	blockHeight := s.ContractRef().BlockHeight().Uint64()
 	params := &UpdateFeeParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodUpdateFee, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodUpdateFee, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -437,7 +437,7 @@ func UpdateFee(s *modules.ModuleContract) ([]byte, error) {
 	addr := crypto.PubkeyToAddress(*pub)
 
 	//check consensus signs
-	id := append(utils.GetUint64Bytes(params.ChainID), utils.GetUint64Bytes(fee.View)...)
+	id := append(contract.GetUint64Bytes(params.ChainID), contract.GetUint64Bytes(fee.View)...)
 	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodUpdateFee, id, addr, node_manager.Voter)
 	if err != nil {
 		return nil, fmt.Errorf("UpdateFee, CheckConsensusSigns error: %v", err)
@@ -466,13 +466,13 @@ func UpdateFee(s *modules.ModuleContract) ([]byte, error) {
 	if err := PutFee(s, params.ChainID, fee); err != nil {
 		return nil, fmt.Errorf("UpdateFee, PutFee error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodUpdateFee, true)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodUpdateFee, true)
 }
 
-func GetFee(s *modules.ModuleContract) ([]byte, error) {
+func GetFee(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ChainIDParam{}
-	if err := utils.UnpackMethod(ABI, side_chain_manager_abi.MethodGetFee, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, side_chain_manager_abi.MethodGetFee, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 	//get fee
@@ -485,5 +485,5 @@ func GetFee(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetFee, rlp encode fee error: %v", err)
 	}
-	return utils.PackOutputs(ABI, side_chain_manager_abi.MethodGetFee, b)
+	return contract.PackOutputs(ABI, side_chain_manager_abi.MethodGetFee, b)
 }

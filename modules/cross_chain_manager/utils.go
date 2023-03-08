@@ -2,20 +2,20 @@ package cross_chain_manager
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 )
 
-func PutBlackChain(module *modules.ModuleContract, chainID uint64) error {
-	module.GetCacheDB().Put(blackChainKey(chainID), utils2.GetUint64Bytes(chainID))
+func PutBlackChain(module *contract.ModuleContract, chainID uint64) error {
+	module.GetCacheDB().Put(blackChainKey(chainID), contract.GetUint64Bytes(chainID))
 	return nil
 }
 
-func RemoveBlackChain(module *modules.ModuleContract, chainID uint64) {
+func RemoveBlackChain(module *contract.ModuleContract, chainID uint64) {
 	module.GetCacheDB().Delete(blackChainKey(chainID))
 }
 
-func CheckIfChainBlacked(module *modules.ModuleContract, chainID uint64) (bool, error) {
+func CheckIfChainBlacked(module *contract.ModuleContract, chainID uint64) (bool, error) {
 	chainIDStore, err := module.GetCacheDB().Get(blackChainKey(chainID))
 	if err != nil {
 		return true, fmt.Errorf("CheckBlackChain, get black chainIDStore error: %v", err)
@@ -27,6 +27,6 @@ func CheckIfChainBlacked(module *modules.ModuleContract, chainID uint64) (bool, 
 }
 
 func blackChainKey(chainID uint64) []byte {
-	contract := utils2.CrossChainManagerContractAddress
-	return utils2.ConcatKey(contract, []byte(BLACKED_CHAIN), utils2.GetUint64Bytes(chainID))
+	contractAddr := cfg.CrossChainManagerContractAddress
+	return contract.ConcatKey(contractAddr, []byte(BLACKED_CHAIN), contract.GetUint64Bytes(chainID))
 }

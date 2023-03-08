@@ -20,26 +20,24 @@ package info_sync
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-const contractName = "cross chain info sync"
-
 var (
-	this = modules.ModuleContractAddrMap[modules.ModuleInfoSync]
+	this = cfg.ModuleContractAddrMap[cfg.ModuleInfoSync]
 )
 
 func InitInfoSync() {
-	modules.Contracts[this] = RegisterInfoSyncContract
+	contract.Contracts[this] = RegisterInfoSyncContract
 	ABI = GetABI()
 }
 
-func RegisterInfoSyncContract(s *modules.ModuleContract) {
+func RegisterInfoSyncContract(s *contract.ModuleContract) {
 	s.Prepare(ABI, GasTable)
 
 	s.Register(MethodContractName, Name)
@@ -49,14 +47,14 @@ func RegisterInfoSyncContract(s *modules.ModuleContract) {
 	s.Register(MethodGetInfo, GetInfo)
 }
 
-func Name(s *modules.ModuleContract) ([]byte, error) {
-	return utils.PackOutputs(ABI, MethodContractName, contractName)
+func Name(s *contract.ModuleContract) ([]byte, error) {
+	return contract.PackOutputs(ABI, MethodContractName, cfg.ModuleInfoSync)
 }
 
-func SyncRootInfo(s *modules.ModuleContract) ([]byte, error) {
+func SyncRootInfo(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &SyncRootInfoParam{}
-	if err := utils.UnpackMethod(ABI, MethodSyncRootInfo, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodSyncRootInfo, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 	chainID := params.ChainID
@@ -111,13 +109,13 @@ func SyncRootInfo(s *modules.ModuleContract) ([]byte, error) {
 		}
 	}
 
-	return utils.PackOutputs(ABI, MethodSyncRootInfo, true)
+	return contract.PackOutputs(ABI, MethodSyncRootInfo, true)
 }
 
-func Replenish(s *modules.ModuleContract) ([]byte, error) {
+func Replenish(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &ReplenishParam{}
-	if err := utils.UnpackMethod(ABI, MethodReplenish, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodReplenish, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("Replenish, unpack params error: %s", err)
 	}
 
@@ -125,13 +123,13 @@ func Replenish(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Replenish, NotifyReplenish error: %s", err)
 	}
-	return utils.PackOutputs(ABI, MethodReplenish, true)
+	return contract.PackOutputs(ABI, MethodReplenish, true)
 }
 
-func GetInfoHeight(s *modules.ModuleContract) ([]byte, error) {
+func GetInfoHeight(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &GetInfoHeightParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetInfoHeight, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetInfoHeight, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -139,18 +137,18 @@ func GetInfoHeight(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utils.PackOutputs(ABI, MethodGetInfoHeight, height)
+	return contract.PackOutputs(ABI, MethodGetInfoHeight, height)
 }
 
-func GetInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetInfo(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	params := &GetInfoParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetInfo, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetInfo, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 	info, err := GetRootInfo(s, params.ChainID, params.Height)
 	if err != nil {
 		return nil, err
 	}
-	return utils.PackOutputs(ABI, MethodGetInfo, info)
+	return contract.PackOutputs(ABI, MethodGetInfo, info)
 }

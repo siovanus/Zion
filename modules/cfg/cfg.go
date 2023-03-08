@@ -15,13 +15,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The Zion.  If not, see <http://www.gnu.org/licenses/>.
  */
-package utils
+
+package cfg
 
 import "github.com/ethereum/go-ethereum/common"
 
-var (
-	BYTE_FALSE = []byte{0}
-	BYTE_TRUE  = []byte{1}
+const (
+	ModuleInfoSync         = "info_sync"
+	ModuleCrossChain       = "cross_chain"
+	ModuleNodeManager      = "node_manager"
+	ModuleSideChainManager = "side_chain_manager"
+	ModuleEconomic         = "economic"
+	ModuleProposalManager  = "proposal_manager"
 )
 
 var (
@@ -36,3 +41,21 @@ var (
 	SideChainManagerContractAddress  = common.HexToAddress("0x0000000000000000000000000000000000001004")
 	ProposalManagerContractAddress   = common.HexToAddress("0x0000000000000000000000000000000000001005")
 )
+
+var ModuleContractAddrMap = map[string]common.Address{
+	ModuleNodeManager:      NodeManagerContractAddress,
+	ModuleEconomic:         EconomicContractAddress,
+	ModuleInfoSync:         InfoSyncContractAddress,
+	ModuleCrossChain:       CrossChainManagerContractAddress,
+	ModuleSideChainManager: SideChainManagerContractAddress,
+	ModuleProposalManager:  ProposalManagerContractAddress,
+}
+
+func IsModuleContract(addr common.Address) bool {
+	for _, v := range ModuleContractAddrMap {
+		if v == addr {
+			return true
+		}
+	}
+	return false
+}

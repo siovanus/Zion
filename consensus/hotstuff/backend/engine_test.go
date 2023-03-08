@@ -38,7 +38,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	boot.InitNativeContracts()
+	boot.InitModuleContracts()
 	os.Exit(m.Run())
 }
 

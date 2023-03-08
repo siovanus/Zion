@@ -2,8 +2,8 @@ package proposal_manager
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/proposal_manager_abi"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 )
@@ -31,7 +31,7 @@ func (m *ProposalList) Decode(payload []byte) error {
 	var data struct {
 		ProposalList []byte
 	}
-	if err := utils.UnpackOutputs(ABI, MethodGetProposalList, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetProposalList, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ProposalList, m)
@@ -45,7 +45,7 @@ func (m *ConfigProposalList) Decode(payload []byte) error {
 	var data struct {
 		ProposalList []byte
 	}
-	if err := utils.UnpackOutputs(ABI, MethodGetConfigProposalList, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetConfigProposalList, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ProposalList, m)
@@ -59,7 +59,7 @@ func (m *CommunityProposalList) Decode(payload []byte) error {
 	var data struct {
 		ProposalList []byte
 	}
-	if err := utils.UnpackOutputs(ABI, MethodGetCommunityProposalList, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetCommunityProposalList, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ProposalList, m)
@@ -79,7 +79,7 @@ func (m *Proposal) Decode(payload []byte) error {
 	var data struct {
 		Proposal []byte
 	}
-	if err := utils.UnpackOutputs(ABI, MethodGetProposal, &data, payload); err != nil {
+	if err := contract.UnpackOutputs(ABI, MethodGetProposal, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.Proposal, m)

@@ -20,10 +20,10 @@ package node_manager
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
 	"github.com/ethereum/go-ethereum/modules/helper"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 	"sort"
 
@@ -82,10 +82,10 @@ var (
 
 func InitNodeManager() {
 	InitABI()
-	modules.Contracts[this] = RegisterNodeManagerContract
+	contract.Contracts[this] = RegisterNodeManagerContract
 }
 
-func RegisterNodeManagerContract(s *modules.ModuleContract) {
+func RegisterNodeManagerContract(s *contract.ModuleContract) {
 	s.Prepare(ABI, gasTable)
 
 	s.Register(MethodCreateValidator, CreateValidator)
@@ -120,7 +120,7 @@ func RegisterNodeManagerContract(s *modules.ModuleContract) {
 	s.Register(MethodGetStakeRewards, GetStakeRewards)
 }
 
-func CreateValidator(s *modules.ModuleContract) ([]byte, error) {
+func CreateValidator(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	height := s.ContractRef().BlockHeight()
 	caller := ctx.Caller
@@ -130,12 +130,12 @@ func CreateValidator(s *modules.ModuleContract) ([]byte, error) {
 	if ctx.Caller != s.ContractRef().TxOrigin() {
 		return nil, fmt.Errorf("CreateValidator, contract call forbidden")
 	}
-	if toAddress != utils.NodeManagerContractAddress {
+	if toAddress != cfg.NodeManagerContractAddress {
 		return nil, fmt.Errorf("CreateValidator, to address must be node manager contract address")
 	}
 
 	params := &CreateValidatorParam{}
-	if err := utils.UnpackMethod(ABI, MethodCreateValidator, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodCreateValidator, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("CreateValidator, unpack params error: %v", err)
 	}
 
@@ -230,15 +230,15 @@ func CreateValidator(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("CreateValidator, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodCreateValidator, true)
+	return contract.PackOutputs(ABI, MethodCreateValidator, true)
 }
 
-func UpdateValidator(s *modules.ModuleContract) ([]byte, error) {
+func UpdateValidator(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 
 	params := &UpdateValidatorParam{}
-	if err := utils.UnpackMethod(ABI, MethodUpdateValidator, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodUpdateValidator, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("UpdateValidator, unpack params error: %v", err)
 	}
 
@@ -287,16 +287,16 @@ func UpdateValidator(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("UpdateValidator, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodUpdateValidator, true)
+	return contract.PackOutputs(ABI, MethodUpdateValidator, true)
 }
 
-func UpdateCommission(s *modules.ModuleContract) ([]byte, error) {
+func UpdateCommission(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	height := s.ContractRef().BlockHeight()
 	caller := ctx.Caller
 
 	params := &UpdateCommissionParam{}
-	if err := utils.UnpackMethod(ABI, MethodUpdateCommission, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodUpdateCommission, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("UpdateCommission, unpack params error: %v", err)
 	}
 
@@ -342,10 +342,10 @@ func UpdateCommission(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("UpdateCommission, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodUpdateCommission, true)
+	return contract.PackOutputs(ABI, MethodUpdateCommission, true)
 }
 
-func Stake(s *modules.ModuleContract) ([]byte, error) {
+func Stake(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 	value := s.ContractRef().Value()
@@ -354,12 +354,12 @@ func Stake(s *modules.ModuleContract) ([]byte, error) {
 	if ctx.Caller != s.ContractRef().TxOrigin() {
 		return nil, fmt.Errorf("Stake, contract call forbidden")
 	}
-	if toAddress != utils.NodeManagerContractAddress {
+	if toAddress != cfg.NodeManagerContractAddress {
 		return nil, fmt.Errorf("Stake, to address must be node manager contract address")
 	}
 
 	params := &StakeParam{}
-	if err := utils.UnpackMethod(ABI, MethodStake, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodStake, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("Stake, unpack params error: %v", err)
 	}
 	if value.Sign() <= 0 {
@@ -414,15 +414,15 @@ func Stake(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Stake, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodStake, true)
+	return contract.PackOutputs(ABI, MethodStake, true)
 }
 
-func UnStake(s *modules.ModuleContract) ([]byte, error) {
+func UnStake(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 
 	params := &UnStakeParam{}
-	if err := utils.UnpackMethod(ABI, MethodUnStake, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodUnStake, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("UnStake, unpack params error: %v", err)
 	}
 	if params.Amount.Sign() <= 0 {
@@ -471,10 +471,10 @@ func UnStake(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("UnStake, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodUnStake, true)
+	return contract.PackOutputs(ABI, MethodUnStake, true)
 }
 
-func Withdraw(s *modules.ModuleContract) ([]byte, error) {
+func Withdraw(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 
@@ -500,16 +500,16 @@ func Withdraw(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Withdraw, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodWithdraw, true)
+	return contract.PackOutputs(ABI, MethodWithdraw, true)
 }
 
-func CancelValidator(s *modules.ModuleContract) ([]byte, error) {
+func CancelValidator(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 	height := s.ContractRef().BlockHeight()
 
 	params := &CancelValidatorParam{}
-	if err := utils.UnpackMethod(ABI, MethodCancelValidator, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodCancelValidator, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("CancelValidator, unpack params error: %v", err)
 	}
 
@@ -558,16 +558,16 @@ func CancelValidator(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("CancelValidator, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodCancelValidator, true)
+	return contract.PackOutputs(ABI, MethodCancelValidator, true)
 }
 
-func WithdrawValidator(s *modules.ModuleContract) ([]byte, error) {
+func WithdrawValidator(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 	height := s.ContractRef().BlockHeight()
 
 	params := &WithdrawValidatorParam{}
-	if err := utils.UnpackMethod(ABI, MethodWithdrawValidator, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodWithdrawValidator, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("WithdrawValidator, unpack params error: %v", err)
 	}
 	validator, found, err := getValidator(s, params.ConsensusAddress)
@@ -618,12 +618,12 @@ func WithdrawValidator(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("CancelValidator, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodWithdrawValidator, true)
+	return contract.PackOutputs(ABI, MethodWithdrawValidator, true)
 }
 
-func ChangeEpoch(s *modules.ModuleContract) ([]byte, error) {
+func ChangeEpoch(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
-	if ctx.Caller != s.ContractRef().TxOrigin() || ctx.Caller != utils.SystemTxSender {
+	if ctx.Caller != s.ContractRef().TxOrigin() || ctx.Caller != cfg.SystemTxSender {
 		return nil, fmt.Errorf("SystemTx authority failed")
 	}
 
@@ -727,15 +727,15 @@ func ChangeEpoch(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ChangeEpoch, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodChangeEpoch, true)
+	return contract.PackOutputs(ABI, MethodChangeEpoch, true)
 }
 
-func WithdrawStakeRewards(s *modules.ModuleContract) ([]byte, error) {
+func WithdrawStakeRewards(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 
 	params := &WithdrawStakeRewardsParam{}
-	if err := utils.UnpackMethod(ABI, MethodWithdrawStakeRewards, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodWithdrawStakeRewards, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("WithdrawStakeRewards, unpack params error: %v", err)
 	}
 
@@ -769,15 +769,15 @@ func WithdrawStakeRewards(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("WithdrawStakeRewards, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodWithdrawStakeRewards, true)
+	return contract.PackOutputs(ABI, MethodWithdrawStakeRewards, true)
 }
 
-func WithdrawCommission(s *modules.ModuleContract) ([]byte, error) {
+func WithdrawCommission(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 
 	params := &WithdrawCommissionParam{}
-	if err := utils.UnpackMethod(ABI, MethodWithdrawCommission, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodWithdrawCommission, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("WithdrawCommission, unpack params error: %v", err)
 	}
 	validator, found, err := getValidator(s, params.ConsensusAddress)
@@ -804,12 +804,12 @@ func WithdrawCommission(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("WithdrawCommission, AddNotify error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodWithdrawCommission, true)
+	return contract.PackOutputs(ABI, MethodWithdrawCommission, true)
 }
 
-func EndBlock(s *modules.ModuleContract) ([]byte, error) {
+func EndBlock(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
-	if ctx.Caller != s.ContractRef().TxOrigin() || ctx.Caller != utils.SystemTxSender {
+	if ctx.Caller != s.ContractRef().TxOrigin() || ctx.Caller != cfg.SystemTxSender {
 		return nil, fmt.Errorf("SystemTx authority failed")
 	}
 
@@ -871,10 +871,10 @@ func EndBlock(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("EndBlock, setOutstandingRewards error: %v", err)
 	}
 
-	return utils.PackOutputs(ABI, MethodEndBlock, true)
+	return contract.PackOutputs(ABI, MethodEndBlock, true)
 }
 
-func GetGlobalConfig(s *modules.ModuleContract) ([]byte, error) {
+func GetGlobalConfig(s *contract.ModuleContract) ([]byte, error) {
 	globalConfig, err := GetGlobalConfigImpl(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetGlobalConfig, GetGlobalConfigImpl error: %v", err)
@@ -884,10 +884,10 @@ func GetGlobalConfig(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetGlobalConfig, serialize global config error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetGlobalConfig, enc)
+	return contract.PackOutputs(ABI, MethodGetGlobalConfig, enc)
 }
 
-func GetCommunityInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetCommunityInfo(s *contract.ModuleContract) ([]byte, error) {
 	communityInfo, err := GetCommunityInfoImpl(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityInfo, GetCommunityInfoImpl error: %v", err)
@@ -897,10 +897,10 @@ func GetCommunityInfo(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityInfo, serialize community info error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetCommunityInfo, enc)
+	return contract.PackOutputs(ABI, MethodGetCommunityInfo, enc)
 }
 
-func GetCurrentEpochInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetCurrentEpochInfo(s *contract.ModuleContract) ([]byte, error) {
 	currentEpochInfo, err := GetCurrentEpochInfoImpl(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetCurrentEpochInfo, GetCurrentEpochInfoImpl error: %v", err)
@@ -909,14 +909,14 @@ func GetCurrentEpochInfo(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetCurrentEpochInfo, serialize current epoch info error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetCurrentEpochInfo, enc)
+	return contract.PackOutputs(ABI, MethodGetCurrentEpochInfo, enc)
 }
 
-func GetEpochInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetEpochInfo(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetEpochInfoParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetEpochInfo, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetEpochInfo, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetEpochInfo, unpack params error: %v", err)
 	}
 
@@ -928,10 +928,10 @@ func GetEpochInfo(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetEpochInfo, serialize epoch info error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetEpochInfo, enc)
+	return contract.PackOutputs(ABI, MethodGetEpochInfo, enc)
 }
 
-func GetAllValidators(s *modules.ModuleContract) ([]byte, error) {
+func GetAllValidators(s *contract.ModuleContract) ([]byte, error) {
 	allValidators, err := getAllValidators(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllValidators, getAllValidators error: %v", err)
@@ -940,14 +940,14 @@ func GetAllValidators(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetAllValidators, serialize all validators error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetAllValidators, enc)
+	return contract.PackOutputs(ABI, MethodGetAllValidators, enc)
 }
 
-func GetValidator(s *modules.ModuleContract) ([]byte, error) {
+func GetValidator(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetValidatorParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetValidator, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetValidator, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetValidator, unpack params error: %v", err)
 	}
 
@@ -962,14 +962,14 @@ func GetValidator(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetValidator, serialize validator error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetValidator, enc)
+	return contract.PackOutputs(ABI, MethodGetValidator, enc)
 }
 
-func GetStakeInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetStakeInfo(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetStakeInfoParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetStakeInfo, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetStakeInfo, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetStakeInfo, unpack params error: %v", err)
 	}
 
@@ -984,14 +984,14 @@ func GetStakeInfo(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetStakeInfo, serialize stakeInfo error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetStakeInfo, enc)
+	return contract.PackOutputs(ABI, MethodGetStakeInfo, enc)
 }
 
-func GetUnlockingInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetUnlockingInfo(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetUnlockingInfoParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetUnlockingInfo, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetUnlockingInfo, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetUnlockingInfo, unpack params error: %v", err)
 	}
 
@@ -1003,14 +1003,14 @@ func GetUnlockingInfo(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetUnlockingInfo, serialize unlockingInfo error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetUnlockingInfo, enc)
+	return contract.PackOutputs(ABI, MethodGetUnlockingInfo, enc)
 }
 
-func GetStakeStartingInfo(s *modules.ModuleContract) ([]byte, error) {
+func GetStakeStartingInfo(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetStakeStartingInfoParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetStakeStartingInfo, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetStakeStartingInfo, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetStakeStartingInfo, unpack params error: %v", err)
 	}
 
@@ -1022,14 +1022,14 @@ func GetStakeStartingInfo(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetStakeStartingInfo, serialize stakeStartingInfo error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetStakeStartingInfo, enc)
+	return contract.PackOutputs(ABI, MethodGetStakeStartingInfo, enc)
 }
 
-func GetAccumulatedCommission(s *modules.ModuleContract) ([]byte, error) {
+func GetAccumulatedCommission(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetAccumulatedCommissionParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetAccumulatedCommission, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetAccumulatedCommission, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetAccumulatedCommission, unpack params error: %v", err)
 	}
 
@@ -1041,14 +1041,14 @@ func GetAccumulatedCommission(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetAccumulatedCommission, serialize accumulatedCommission error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetAccumulatedCommission, enc)
+	return contract.PackOutputs(ABI, MethodGetAccumulatedCommission, enc)
 }
 
-func GetValidatorSnapshotRewards(s *modules.ModuleContract) ([]byte, error) {
+func GetValidatorSnapshotRewards(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetValidatorSnapshotRewardsParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetValidatorSnapshotRewards, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetValidatorSnapshotRewards, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetValidatorSnapshotRewards, unpack params error: %v", err)
 	}
 
@@ -1060,14 +1060,14 @@ func GetValidatorSnapshotRewards(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetValidatorSnapshotRewards, serialize validatorSnapshotRewards error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetValidatorSnapshotRewards, enc)
+	return contract.PackOutputs(ABI, MethodGetValidatorSnapshotRewards, enc)
 }
 
-func GetValidatorAccumulatedRewards(s *modules.ModuleContract) ([]byte, error) {
+func GetValidatorAccumulatedRewards(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetValidatorAccumulatedRewardsParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetValidatorAccumulatedRewards, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetValidatorAccumulatedRewards, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetValidatorAccumulatedRewards, unpack params error: %v", err)
 	}
 
@@ -1079,14 +1079,14 @@ func GetValidatorAccumulatedRewards(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetValidatorAccumulatedRewards, serialize validatorAccumulatedRewards error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetValidatorAccumulatedRewards, enc)
+	return contract.PackOutputs(ABI, MethodGetValidatorAccumulatedRewards, enc)
 }
 
-func GetValidatorOutstandingRewards(s *modules.ModuleContract) ([]byte, error) {
+func GetValidatorOutstandingRewards(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetValidatorOutstandingRewardsParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetValidatorOutstandingRewards, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetValidatorOutstandingRewards, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetValidatorOutstandingRewards, unpack params error: %v", err)
 	}
 
@@ -1098,10 +1098,10 @@ func GetValidatorOutstandingRewards(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetValidatorOutstandingRewards, serialize validatorOutstandingRewards error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetValidatorOutstandingRewards, enc)
+	return contract.PackOutputs(ABI, MethodGetValidatorOutstandingRewards, enc)
 }
 
-func GetTotalPool(s *modules.ModuleContract) ([]byte, error) {
+func GetTotalPool(s *contract.ModuleContract) ([]byte, error) {
 	totalPool, err := getTotalPool(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetTotalPool, getTotalPool error: %v", err)
@@ -1110,10 +1110,10 @@ func GetTotalPool(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetTotalPool, serialize totalPool error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetTotalPool, enc)
+	return contract.PackOutputs(ABI, MethodGetTotalPool, enc)
 }
 
-func GetOutstandingRewards(s *modules.ModuleContract) ([]byte, error) {
+func GetOutstandingRewards(s *contract.ModuleContract) ([]byte, error) {
 	outstandingRewards, err := getOutstandingRewards(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetOutstandingRewards, getOutstandingRewards error: %v", err)
@@ -1122,14 +1122,14 @@ func GetOutstandingRewards(s *modules.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetOutstandingRewards, serialize outstandingRewards error: %v", err)
 	}
-	return utils.PackOutputs(ABI, MethodGetOutstandingRewards, enc)
+	return contract.PackOutputs(ABI, MethodGetOutstandingRewards, enc)
 }
 
-func GetStakeRewards(s *modules.ModuleContract) ([]byte, error) {
+func GetStakeRewards(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 
 	params := &GetStakeRewardsParam{}
-	if err := utils.UnpackMethod(ABI, MethodGetStakeRewards, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(ABI, MethodGetStakeRewards, params, ctx.Payload); err != nil {
 		return nil, fmt.Errorf("GetStakeRewards, unpack params error: %v", err)
 	}
 
@@ -1188,7 +1188,7 @@ func GetStakeRewards(s *modules.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("GetStakeRewards, serialize stake rewards error: %v", err)
 	}
 
-	return utils.PackOutputs(ABI, MethodGetStakeRewards, enc)
+	return contract.PackOutputs(ABI, MethodGetStakeRewards, enc)
 }
 
 // GetSpecMethodID for consensus use

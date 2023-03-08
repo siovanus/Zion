@@ -19,9 +19,10 @@ package vm
 import (
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 	"math/big"
@@ -253,9 +254,9 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}(gas, time.Now())
 	}
 
-	isNativeTx := modules.IsModuleContract(addr)
+	isNativeTx := cfg.IsModuleContract(addr)
 	if isNativeTx {
-		ret, gas, err = evm.nativeCall(caller.Address(), addr, input, gas, value)
+		ret, gas, err = evm.moduleCall(caller.Address(), addr, input, gas, value)
 	} else {
 		if isPrecompile {
 			ret, gas, err = RunPrecompiledContract(p, input, gas)
@@ -426,12 +427,11 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	return ret, gas, err
 }
 
-// NativeCall differ from evm contract operation, native contract operations DONT need to distinguish
+// Module differ from evm contract operation, native contract operations DONT need to distinguish
 // `call`, `staticCall`, `delegateCall` and `callCode`, because the context of native contract contains
 // the entire stateDB, and there is no need to find the safe caller's memory storage in calling operation.
 //
-// In addition, the gas of native call temporarily uses a fixed value
-func (evm *EVM) nativeCall(caller, toContract common.Address, input []byte, suppliedGas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+func (evm *EVM) moduleCall(caller, toContract common.Address, input []byte, suppliedGas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
 	sdb := evm.StateDB.(*state.StateDB)
 	blockNumber := evm.Context.BlockNumber
 
@@ -439,7 +439,7 @@ func (evm *EVM) nativeCall(caller, toContract common.Address, input []byte, supp
 	txHash := evm.TxContext.TxHash
 	msgSender := evm.TxContext.Origin
 
-	contractRef := modules.NewContractRef(sdb, msgSender, caller, blockNumber, txHash, suppliedGas, evm.Callback)
+	contractRef := contract.NewContractRef(sdb, msgSender, caller, blockNumber, txHash, suppliedGas, evm.Callback)
 	contractRef.SetValue(value)
 	contractRef.SetTo(toContract)
 

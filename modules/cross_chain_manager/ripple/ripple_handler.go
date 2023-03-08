@@ -21,13 +21,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/modules"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/modules/go_abi/cross_chain_manager_abi"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/polynetwork/ripple-sdk/types"
 	"github.com/rubblelabs/ripple/data"
@@ -41,10 +40,10 @@ func NewRippleHandler() *RippleHandler {
 	return &RippleHandler{}
 }
 
-func (this *RippleHandler) MakeDepositProposal(service *modules.ModuleContract) (*common.MakeTxParam, error) {
+func (this *RippleHandler) MakeDepositProposal(service *contract.ModuleContract) (*common.MakeTxParam, error) {
 	ctx := service.ContractRef().CurrentContext()
 	params := &common.EntranceParam{}
-	if err := utils.UnpackMethod(common.ABI, common.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodImportOuterTransfer, params, ctx.Payload); err != nil {
 		return nil, err
 	}
 
@@ -100,10 +99,10 @@ func (this *RippleHandler) MakeDepositProposal(service *modules.ModuleContract) 
 	return nil, nil
 }
 
-func (this *RippleHandler) MultiSign(service *modules.ModuleContract) error {
+func (this *RippleHandler) MultiSign(service *contract.ModuleContract) error {
 	ctx := service.ContractRef().CurrentContext()
 	params := &common.MultiSignParam{}
-	if err := utils.UnpackMethod(common.ABI, common.MethodMultiSignRipple, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodMultiSignRipple, params, ctx.Payload); err != nil {
 		return fmt.Errorf("MultiSign, contract params deserialize error: %v", err)
 	}
 
@@ -220,7 +219,7 @@ func (this *RippleHandler) MultiSign(service *modules.ModuleContract) error {
 	return nil
 }
 
-func (this *RippleHandler) MakeTransaction(service *modules.ModuleContract, param *common.MakeTxParam,
+func (this *RippleHandler) MakeTransaction(service *contract.ModuleContract, param *common.MakeTxParam,
 	fromChainID uint64) error {
 	args, err := common.DecodeRippleTxArgs(param.Args)
 	if err != nil {
@@ -317,10 +316,10 @@ func (this *RippleHandler) MakeTransaction(service *modules.ModuleContract, para
 	return nil
 }
 
-func (this *RippleHandler) ReconstructTx(service *modules.ModuleContract) error {
+func (this *RippleHandler) ReconstructTx(service *contract.ModuleContract) error {
 	ctx := service.ContractRef().CurrentContext()
 	params := &common.ReconstructTxParam{}
-	if err := utils.UnpackMethod(common.ABI, common.MethodReconstructRippleTx, params, ctx.Payload); err != nil {
+	if err := contract.UnpackMethod(common.ABI, common.MethodReconstructRippleTx, params, ctx.Payload); err != nil {
 		return fmt.Errorf("ReconstructTx, contract params deserialize error: %v", err)
 	}
 

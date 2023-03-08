@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/modules"
 )
 
 type SignerName string
@@ -34,7 +34,7 @@ const (
 	Proposer SignerName = "Proposer"
 )
 
-func CheckConsensusSigns(s *modules.ModuleContract, method string, input []byte, signer common.Address, signerName SignerName) (bool, error) {
+func CheckConsensusSigns(s *contract.ModuleContract, method string, input []byte, signer common.Address, signerName SignerName) (bool, error) {
 	ctx := s.ContractRef().CurrentContext()
 	caller := ctx.Caller
 

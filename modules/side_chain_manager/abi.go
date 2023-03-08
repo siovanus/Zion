@@ -21,9 +21,9 @@ package side_chain_manager
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/go_abi/side_chain_manager_abi"
-	"github.com/ethereum/go-ethereum/modules/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"strings"
@@ -55,7 +55,7 @@ type RegisterSideChainParam struct {
 }
 
 func (m *RegisterSideChainParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodRegisterSideChain, m)
+	return contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodRegisterSideChain, m)
 }
 
 type ChainIDParam struct {
@@ -70,7 +70,7 @@ type UpdateFeeParam struct {
 }
 
 func (m *UpdateFeeParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodUpdateFee, m)
+	return contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodUpdateFee, m)
 }
 
 //Digest Digest calculate the hash of param input
@@ -97,5 +97,5 @@ type RegisterAssetParam struct {
 }
 
 func (m *RegisterAssetParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodRegisterAsset, m)
+	return contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodRegisterAsset, m)
 }

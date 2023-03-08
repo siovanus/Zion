@@ -22,13 +22,12 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 	"strings"
 )
-
-const contractName = "node manager"
 
 func InitABI() {
 	ab, err := abi.JSON(strings.NewReader(INodeManagerABI))
@@ -40,7 +39,7 @@ func InitABI() {
 
 var (
 	ABI  *abi.ABI
-	this = utils2.NodeManagerContractAddress
+	this = cfg.NodeManagerContractAddress
 )
 
 type CreateValidatorParam struct {
@@ -52,7 +51,7 @@ type CreateValidatorParam struct {
 }
 
 func (m *CreateValidatorParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodCreateValidator, m)
+	return contract.PackMethodWithStruct(ABI, MethodCreateValidator, m)
 }
 
 type UpdateValidatorParam struct {
@@ -63,7 +62,7 @@ type UpdateValidatorParam struct {
 }
 
 func (m *UpdateValidatorParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodUpdateValidator, m)
+	return contract.PackMethodWithStruct(ABI, MethodUpdateValidator, m)
 }
 
 type UpdateCommissionParam struct {
@@ -72,7 +71,7 @@ type UpdateCommissionParam struct {
 }
 
 func (m *UpdateCommissionParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodUpdateCommission, m)
+	return contract.PackMethodWithStruct(ABI, MethodUpdateCommission, m)
 }
 
 type StakeParam struct {
@@ -80,7 +79,7 @@ type StakeParam struct {
 }
 
 func (m *StakeParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodStake, m)
+	return contract.PackMethodWithStruct(ABI, MethodStake, m)
 }
 
 type UnStakeParam struct {
@@ -89,7 +88,7 @@ type UnStakeParam struct {
 }
 
 func (m *UnStakeParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodUnStake, m)
+	return contract.PackMethodWithStruct(ABI, MethodUnStake, m)
 }
 
 type CancelValidatorParam struct {
@@ -97,7 +96,7 @@ type CancelValidatorParam struct {
 }
 
 func (m *CancelValidatorParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodCancelValidator, m)
+	return contract.PackMethodWithStruct(ABI, MethodCancelValidator, m)
 }
 
 type WithdrawValidatorParam struct {
@@ -105,7 +104,7 @@ type WithdrawValidatorParam struct {
 }
 
 func (m *WithdrawValidatorParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodWithdrawValidator, m)
+	return contract.PackMethodWithStruct(ABI, MethodWithdrawValidator, m)
 }
 
 type WithdrawStakeRewardsParam struct {
@@ -113,7 +112,7 @@ type WithdrawStakeRewardsParam struct {
 }
 
 func (m *WithdrawStakeRewardsParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodWithdrawStakeRewards, m)
+	return contract.PackMethodWithStruct(ABI, MethodWithdrawStakeRewards, m)
 }
 
 type WithdrawCommissionParam struct {
@@ -121,43 +120,43 @@ type WithdrawCommissionParam struct {
 }
 
 func (m *WithdrawCommissionParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodWithdrawCommission, m)
+	return contract.PackMethodWithStruct(ABI, MethodWithdrawCommission, m)
 }
 
 type ChangeEpochParam struct{}
 
 func (m *ChangeEpochParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodChangeEpoch)
+	return contract.PackMethod(ABI, MethodChangeEpoch)
 }
 
 type WithdrawParam struct{}
 
 func (m *WithdrawParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodWithdraw)
+	return contract.PackMethod(ABI, MethodWithdraw)
 }
 
 type EndBlockParam struct{}
 
 func (m *EndBlockParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodEndBlock)
+	return contract.PackMethod(ABI, MethodEndBlock)
 }
 
 type GetGlobalConfigParam struct{}
 
 func (m *GetGlobalConfigParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodGetGlobalConfig)
+	return contract.PackMethod(ABI, MethodGetGlobalConfig)
 }
 
 type GetCommunityInfoParam struct{}
 
 func (m *GetCommunityInfoParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodGetCommunityInfo)
+	return contract.PackMethod(ABI, MethodGetCommunityInfo)
 }
 
 type GetCurrentEpochInfoParam struct{}
 
 func (m *GetCurrentEpochInfoParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodGetCurrentEpochInfo)
+	return contract.PackMethod(ABI, MethodGetCurrentEpochInfo)
 }
 
 type GetEpochInfoParam struct {
@@ -165,13 +164,13 @@ type GetEpochInfoParam struct {
 }
 
 func (m *GetEpochInfoParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetEpochInfo, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetEpochInfo, m)
 }
 
 type GetAllValidatorsParam struct{}
 
 func (m *GetAllValidatorsParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodGetAllValidators)
+	return contract.PackMethod(ABI, MethodGetAllValidators)
 }
 
 type GetValidatorParam struct {
@@ -179,7 +178,7 @@ type GetValidatorParam struct {
 }
 
 func (m *GetValidatorParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetValidator, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetValidator, m)
 }
 
 type GetStakeInfoParam struct {
@@ -188,7 +187,7 @@ type GetStakeInfoParam struct {
 }
 
 func (m *GetStakeInfoParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetStakeInfo, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetStakeInfo, m)
 }
 
 type GetUnlockingInfoParam struct {
@@ -196,7 +195,7 @@ type GetUnlockingInfoParam struct {
 }
 
 func (m *GetUnlockingInfoParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetUnlockingInfo, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetUnlockingInfo, m)
 }
 
 type GetStakeStartingInfoParam struct {
@@ -205,7 +204,7 @@ type GetStakeStartingInfoParam struct {
 }
 
 func (m *GetStakeStartingInfoParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetStakeStartingInfo, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetStakeStartingInfo, m)
 }
 
 type GetAccumulatedCommissionParam struct {
@@ -213,7 +212,7 @@ type GetAccumulatedCommissionParam struct {
 }
 
 func (m *GetAccumulatedCommissionParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetAccumulatedCommission, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetAccumulatedCommission, m)
 }
 
 type GetValidatorSnapshotRewardsParam struct {
@@ -222,7 +221,7 @@ type GetValidatorSnapshotRewardsParam struct {
 }
 
 func (m *GetValidatorSnapshotRewardsParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetValidatorSnapshotRewards, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetValidatorSnapshotRewards, m)
 }
 
 type GetValidatorAccumulatedRewardsParam struct {
@@ -230,7 +229,7 @@ type GetValidatorAccumulatedRewardsParam struct {
 }
 
 func (m *GetValidatorAccumulatedRewardsParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetValidatorAccumulatedRewards, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetValidatorAccumulatedRewards, m)
 }
 
 type GetValidatorOutstandingRewardsParam struct {
@@ -238,19 +237,19 @@ type GetValidatorOutstandingRewardsParam struct {
 }
 
 func (m *GetValidatorOutstandingRewardsParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetValidatorOutstandingRewards, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetValidatorOutstandingRewards, m)
 }
 
 type GetTotalPoolParam struct{}
 
 func (m *GetTotalPoolParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodGetTotalPool)
+	return contract.PackMethod(ABI, MethodGetTotalPool)
 }
 
 type GetOutstandingRewardsParam struct{}
 
 func (m *GetOutstandingRewardsParam) Encode() ([]byte, error) {
-	return utils2.PackMethod(ABI, MethodGetOutstandingRewards)
+	return contract.PackMethod(ABI, MethodGetOutstandingRewards)
 }
 
 type GetStakeRewardsParam struct {
@@ -259,5 +258,5 @@ type GetStakeRewardsParam struct {
 }
 
 func (m *GetStakeRewardsParam) Encode() ([]byte, error) {
-	return utils2.PackMethodWithStruct(ABI, MethodGetStakeRewards, m)
+	return contract.PackMethodWithStruct(ABI, MethodGetStakeRewards, m)
 }

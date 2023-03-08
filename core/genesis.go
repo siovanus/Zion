@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"math/big"
 	"strings"
 
@@ -295,7 +295,7 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		g.checkExtra()
 		g.checkGovernance()
 		g.mintNativeToken(statedb)
-		for _, v := range modules.ModuleContractAddrMap {
+		for _, v := range cfg.ModuleContractAddrMap {
 			g.createNativeContract(statedb, v)
 		}
 		RegGenesis(statedb, g)

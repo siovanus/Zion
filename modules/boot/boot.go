@@ -15,17 +15,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The Zion.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package boot
 
 import (
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager"
 	"github.com/ethereum/go-ethereum/modules/economic"
 	"github.com/ethereum/go-ethereum/modules/info_sync"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/modules/proposal_manager"
 	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
 )
 
 func InitModuleContracts() {
@@ -37,12 +38,11 @@ func InitModuleContracts() {
 	proposal_manager.InitProposalManager()
 
 	log.Info("Initialize module contracts",
-		"node manager", utils.NodeManagerContractAddress.Hex(),
-		"economic", utils.EconomicContractAddress.Hex(),
-		"header sync", utils.InfoSyncContractAddress.Hex(),
-		"cross chain manager", utils.CrossChainManagerContractAddress.Hex(),
-		"side chain manager", utils.SideChainManagerContractAddress.Hex(),
-		"proposal manager", utils.ProposalManagerContractAddress.Hex(),
+		"node manager", cfg.NodeManagerContractAddress.Hex(),
+		"economic", cfg.EconomicContractAddress.Hex(),
+		"header sync", cfg.InfoSyncContractAddress.Hex(),
+		"cross chain manager", cfg.CrossChainManagerContractAddress.Hex(),
+		"side chain manager", cfg.SideChainManagerContractAddress.Hex(),
+		"proposal manager", cfg.ProposalManagerContractAddress.Hex(),
 	)
-
 }

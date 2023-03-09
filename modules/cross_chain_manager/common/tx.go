@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/cfg"
@@ -45,7 +46,7 @@ func MakeTransaction(service *contract.ModuleContract, params *MakeTxParam, from
 	if err != nil {
 		return fmt.Errorf("MakeTransaction, putRequest error:%s", err)
 	}
-	chainIDBytes := contract.GetUint64Bytes(params.ToChainID)
+	chainIDBytes := utils.GetUint64Bytes(params.ToChainID)
 	key := state.Key2Slot(append([]byte(REQUEST), append(chainIDBytes, merkleValue.TxHash...)...)).String()
 	if err := NotifyMakeProof(service, hex.EncodeToString(value), key); err != nil {
 		return fmt.Errorf("MakeTransaction, NotifyMakeProof error:%s", err)
@@ -56,6 +57,6 @@ func MakeTransaction(service *contract.ModuleContract, params *MakeTxParam, from
 func PutRequest(module *contract.ModuleContract, txHash []byte, chainID uint64, request []byte) error {
 	hash := crypto.Keccak256Hash(request)
 	contractAddr := cfg.CrossChainManagerContractAddress
-	chainIDBytes := contract.GetUint64Bytes(chainID)
-	return module.GetCacheDB().SetHash(contract.ConcatKey(contractAddr, []byte(REQUEST), chainIDBytes, txHash), hash)
+	chainIDBytes := utils.GetUint64Bytes(chainID)
+	return module.GetCacheDB().SetHash(utils.ConcatKey(contractAddr, []byte(REQUEST), chainIDBytes, txHash), hash)
 }

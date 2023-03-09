@@ -23,7 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/contracts/native/governance/node_manager"
 	"github.com/ethereum/go-ethereum/core/state"
 	utils2 "github.com/ethereum/go-ethereum/modules/utils"
@@ -682,7 +682,7 @@ func TestUnmarshalHeader(t *testing.T) {
 	// cache db slot
 	contractAddr := utils2.NodeManagerContractAddress
 	proofHash := node_manager.EpochProofHash(epochID)
-	cacheKey := contract.ConcatKey(contractAddr, []byte("st_proof"), proofHash.Bytes())
+	cacheKey := utils.ConcatKey(contractAddr, []byte("st_proof"), proofHash.Bytes())
 	slot := state.Key2Slot(cacheKey[common.AddressLength:])
 	t.Logf("slot hex before keccak: %s", slot.Hex())
 

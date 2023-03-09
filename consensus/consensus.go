@@ -167,7 +167,7 @@ type HotStuff interface {
 	FillHeader(state *state.StateDB, header *types.Header) error
 
 	// IsSystemCall return method id and true if the tx is an system transaction
-	IsSystemTransaction(tx *types.Transaction, header *types.Header) (string, bool)
+	IsSystemTransaction(tx *types.Transaction) (string, bool)
 
 	// HasSystemTxHook return true if systemTxHook is not nil
 	HasSystemTxHook() bool

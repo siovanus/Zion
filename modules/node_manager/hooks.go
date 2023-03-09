@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/modules/helper"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"math/big"
 )
 
@@ -64,7 +64,7 @@ func AfterValidatorRemoved(s *contract.ModuleContract, validator *Validator) err
 		return fmt.Errorf("AfterValidatorRemoved, GetCommunityInfoImpl error: %v", err)
 	}
 	// transfer outstanding dust to community pool
-	err = helper.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, outstanding.Rewards.BigInt())
+	err = utils.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, outstanding.Rewards.BigInt())
 	if err != nil {
 		return fmt.Errorf("AfterValidatorRemoved, ModuleTransfer error: %v", err)
 	}

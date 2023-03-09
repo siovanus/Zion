@@ -21,9 +21,9 @@ package node_manager
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
-	"github.com/ethereum/go-ethereum/modules/helper"
 	"math/big"
 	"sort"
 
@@ -488,7 +488,7 @@ func Withdraw(s *contract.ModuleContract) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Withdraw, withdrawTotalPool error: %v", err)
 		}
-		err = helper.ModuleTransfer(s.StateDB(), this, caller, amount.BigInt())
+		err = utils.ModuleTransfer(s.StateDB(), this, caller, amount.BigInt())
 		if err != nil {
 			return nil, fmt.Errorf("Withdraw, ModuleTransfer error: %v", err)
 		}

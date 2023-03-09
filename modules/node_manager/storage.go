@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -916,77 +917,77 @@ func customDel(db *state.CacheDB, key []byte) {
 // ====================================================================
 
 func globalConfigKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_GLOBAL_CONFIG))
+	return utils.ConcatKey(this, []byte(SKP_GLOBAL_CONFIG))
 }
 
 func validatorKey(consensusAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_VALIDATOR), consensusAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_VALIDATOR), consensusAddr[:])
 }
 
 func signerAddrKey(signerAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_SIGNER_ADDR), signerAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_SIGNER_ADDR), signerAddr[:])
 }
 
 func proposalAddrKey(proposalAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_PROPOSAL_ADDR), proposalAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_PROPOSAL_ADDR), proposalAddr[:])
 }
 
 func allValidatorKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_ALL_VALIDATOR))
+	return utils.ConcatKey(this, []byte(SKP_ALL_VALIDATOR))
 }
 
 func totalPoolKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_TOTAL_POOL))
+	return utils.ConcatKey(this, []byte(SKP_TOTAL_POOL))
 }
 
 func stakeInfoKey(stakeAddress common.Address, consensusAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_STAKE_INFO), stakeAddress[:], consensusAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_STAKE_INFO), stakeAddress[:], consensusAddr[:])
 }
 
 func unlockingInfoKey(stakeAddress common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_UNLOCK_INFO), stakeAddress[:])
+	return utils.ConcatKey(this, []byte(SKP_UNLOCK_INFO), stakeAddress[:])
 }
 
 func currentEpochKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_CURRENT_EPOCH))
+	return utils.ConcatKey(this, []byte(SKP_CURRENT_EPOCH))
 }
 
 func epochInfoKey(ID *big.Int) []byte {
-	return contract.ConcatKey(this, []byte(SKP_EPOCH_INFO), ID.Bytes())
+	return utils.ConcatKey(this, []byte(SKP_EPOCH_INFO), ID.Bytes())
 }
 
 func accumulatedCommissionKey(consensusAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_ACCUMULATED_COMMISSION), consensusAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_ACCUMULATED_COMMISSION), consensusAddr[:])
 }
 
 func validatorAccumulatedRewardsKey(consensusAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_VALIDATOR_ACCUMULATED_REWARDS), consensusAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_VALIDATOR_ACCUMULATED_REWARDS), consensusAddr[:])
 }
 
 func validatorOutstandingRewardsKey(consensusAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_VALIDATOR_OUTSTANDING_REWARDS), consensusAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_VALIDATOR_OUTSTANDING_REWARDS), consensusAddr[:])
 }
 
 func outstandingRewardsKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_OUTSTANDING_REWARDS))
+	return utils.ConcatKey(this, []byte(SKP_OUTSTANDING_REWARDS))
 }
 
 func validatorSnapshotRewardsKey(consensusAddr common.Address, period uint64) []byte {
-	return contract.ConcatKey(this, []byte(SKP_VALIDATOR_SNAPSHOT_REWARDS), consensusAddr[:], contract.Uint64Bytes(period))
+	return utils.ConcatKey(this, []byte(SKP_VALIDATOR_SNAPSHOT_REWARDS), consensusAddr[:], utils.Uint64Bytes(period))
 }
 
 func stakeStartingInfoKey(stakeAddress common.Address, consensusAddr common.Address) []byte {
-	return contract.ConcatKey(this, []byte(SKP_STAKE_STARTING_INFO), stakeAddress[:], consensusAddr[:])
+	return utils.ConcatKey(this, []byte(SKP_STAKE_STARTING_INFO), stakeAddress[:], consensusAddr[:])
 }
 
 func signKey(hash common.Hash) []byte {
-	return contract.ConcatKey(this, []byte(SKP_SIGN), hash.Bytes())
+	return utils.ConcatKey(this, []byte(SKP_SIGN), hash.Bytes())
 }
 
 func signerKey(hash common.Hash) []byte {
-	return contract.ConcatKey(this, []byte(SKP_SIGNER), hash.Bytes())
+	return utils.ConcatKey(this, []byte(SKP_SIGNER), hash.Bytes())
 }
 
 func communityInfoKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_COMMUNITY_INFO))
+	return utils.ConcatKey(this, []byte(SKP_COMMUNITY_INFO))
 }

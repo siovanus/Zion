@@ -15,11 +15,16 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The Zion.  If not, see <http://www.gnu.org/licenses/>.
  */
-package contract
+package utils
 
 import (
 	"encoding/binary"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/state"
+	"math/big"
 )
 
 func ConcatKey(contract common.Address, args ...[]byte) []byte {
@@ -54,4 +59,29 @@ func GetUint64Bytes(num uint64) []byte {
 	var p [8]byte
 	binary.LittleEndian.PutUint64(p[:], num)
 	return p[:]
+}
+
+func ValidateOrigin(m *contract.ModuleContract, address common.Address) error {
+	if m.ContractRef().TxOrigin() != address {
+		return fmt.Errorf("ValidateOrigin, authentication failed!")
+	}
+	return nil
+}
+
+func ValidateSender(m *contract.ModuleContract, address common.Address) error {
+	if m.ContractRef().MsgSender() != address {
+		return fmt.Errorf("ValidateSender, authentication failed!")
+	}
+	return nil
+}
+
+func ModuleTransfer(s *state.StateDB, from, to common.Address, amount *big.Int) error {
+	if amount.Sign() == -1 {
+		return fmt.Errorf("amount can not be negative")
+	}
+	if !core.CanTransfer(s, from, amount) {
+		return fmt.Errorf("%s insufficient balance", from.Hex())
+	}
+	core.Transfer(s, from, to, amount)
+	return nil
 }

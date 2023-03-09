@@ -15,9 +15,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The Zion.  If not, see <http://www.gnu.org/licenses/>.
  */
-package contract
+package utils
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"math"
@@ -189,4 +190,9 @@ func RLPHash(v interface{}) (h common.Hash) {
 	rlp.Encode(hw, v)
 	hw.Sum(h[:0])
 	return h
+}
+
+// EncodePacked solidity gramma `encodePacked`
+func EncodePacked(input ...[]byte) []byte {
+	return bytes.Join(input, nil)
 }

@@ -21,6 +21,7 @@ package node_manager
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math"
@@ -340,7 +341,7 @@ func (m *ConsensusSign) Hash() common.Hash {
 		Method: m.Method,
 		Input:  m.Input,
 	}
-	v := contract.RLPHash(inf)
+	v := utils.RLPHash(inf)
 	m.hash.Store(v)
 	return v
 }

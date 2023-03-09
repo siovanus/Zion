@@ -21,6 +21,7 @@ package cross_chain_manager
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/eth_common"
@@ -211,7 +212,7 @@ func BlackChain(s *contract.ModuleContract) ([]byte, error) {
 	}
 
 	// Get current epoch operator
-	ok, err := node_manager.CheckConsensusSigns(s, common.MethodBlackChain, contract.GetUint64Bytes(params.ChainID), s.ContractRef().MsgSender(), node_manager.Signer)
+	ok, err := node_manager.CheckConsensusSigns(s, common.MethodBlackChain, utils.GetUint64Bytes(params.ChainID), s.ContractRef().MsgSender(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("BlackChain, CheckConsensusSigns error: %v", err)
 	}

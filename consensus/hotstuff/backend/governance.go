@@ -113,7 +113,7 @@ func (s *backend) Validators(height uint64, mining bool) hotstuff.ValidatorSet {
 }
 
 // IsSystemTransaction used by state processor while sync block.
-func (s *backend) IsSystemTransaction(tx *types.Transaction, header *types.Header) (string, bool) {
+func (s *backend) IsSystemTransaction(tx *types.Transaction) (string, bool) {
 	// consider that tx is deploy transaction, so the tx.to will be nil
 	if tx == nil || len(tx.Data()) < 4 || tx.To() == nil {
 		return "", false

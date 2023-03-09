@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/modules/helper"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"math/big"
 )
 
@@ -110,7 +110,7 @@ func unStake(s *contract.ModuleContract, from common.Address, amount Dec, valida
 			return fmt.Errorf("unStake, withdrawTotalPool error: %v", err)
 		}
 		// transfer Module token
-		err = helper.ModuleTransfer(s.StateDB(), this, from, amount.BigInt())
+		err = utils.ModuleTransfer(s.StateDB(), this, from, amount.BigInt())
 		if err != nil {
 			return fmt.Errorf("unStake, ModuleTransfer error: %v", err)
 		}

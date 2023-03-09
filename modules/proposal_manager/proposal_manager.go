@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/proposal_manager_abi"
-	"github.com/ethereum/go-ethereum/modules/helper"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -361,7 +361,7 @@ func VoteProposal(s *contract.ModuleContract) ([]byte, error) {
 		}
 
 		// transfer token
-		err = helper.ModuleTransfer(s.StateDB(), this, proposal.Address, proposal.Stake)
+		err = utils.ModuleTransfer(s.StateDB(), this, proposal.Address, proposal.Stake)
 		if err != nil {
 			return nil, fmt.Errorf("Propose, utils.ModuleTransfer error: %v", err)
 		}
@@ -427,7 +427,7 @@ func VoteProposal(s *contract.ModuleContract) ([]byte, error) {
 					}
 
 					// transfer token to community pool
-					err = helper.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, p.Stake)
+					err = utils.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, p.Stake)
 					if err != nil {
 						return nil, fmt.Errorf("Propose, utils.ModuleTransfer error: %v", err)
 					}
@@ -474,7 +474,7 @@ func VoteProposal(s *contract.ModuleContract) ([]byte, error) {
 					}
 
 					// transfer token to community pool
-					err = helper.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, p.Stake)
+					err = utils.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, p.Stake)
 					if err != nil {
 						return nil, fmt.Errorf("Propose, utils.ModuleTransfer error: %v", err)
 					}

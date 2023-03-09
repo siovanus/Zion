@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/go_abi/side_chain_manager_abi"
@@ -171,7 +172,7 @@ func ApproveRegisterSideChain(s *contract.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, chainid is not requested")
 	}
 
-	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveRegisterSideChain, contract.GetUint64Bytes(params.ChainID),
+	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveRegisterSideChain, utils.GetUint64Bytes(params.ChainID),
 		s.ContractRef().TxOrigin(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, CheckConsensusSigns error: %v", err)
@@ -185,7 +186,7 @@ func ApproveRegisterSideChain(s *contract.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, putSideChain error: %v", err)
 	}
 
-	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(SIDE_CHAIN_APPLY), contract.GetUint64Bytes(params.ChainID)))
+	s.GetCacheDB().Delete(utils.ConcatKey(cfg.SideChainManagerContractAddress, []byte(SIDE_CHAIN_APPLY), utils.GetUint64Bytes(params.ChainID)))
 	err = s.AddNotify(ABI, []string{EventApproveRegisterSideChain}, params.ChainID)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveRegisterSideChain, AddNotify error: %v", err)
@@ -258,7 +259,7 @@ func ApproveUpdateSideChain(s *contract.ModuleContract) ([]byte, error) {
 	}
 
 	//check consensus signs
-	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveUpdateSideChain, contract.GetUint64Bytes(params.ChainID),
+	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveUpdateSideChain, utils.GetUint64Bytes(params.ChainID),
 		s.ContractRef().TxOrigin(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveUpdateSideChain, CheckConsensusSigns error: %v", err)
@@ -272,8 +273,8 @@ func ApproveUpdateSideChain(s *contract.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ApproveUpdateSideChain, putSideChain error: %v", err)
 	}
 
-	chainidByte := contract.GetUint64Bytes(params.ChainID)
-	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(UPDATE_SIDE_CHAIN_REQUEST), chainidByte))
+	chainidByte := utils.GetUint64Bytes(params.ChainID)
+	s.GetCacheDB().Delete(utils.ConcatKey(cfg.SideChainManagerContractAddress, []byte(UPDATE_SIDE_CHAIN_REQUEST), chainidByte))
 
 	err = s.AddNotify(ABI, []string{EventApproveUpdateSideChain}, params.ChainID)
 	if err != nil {
@@ -325,7 +326,7 @@ func ApproveQuitSideChain(s *contract.ModuleContract) ([]byte, error) {
 	}
 
 	//check consensus signs
-	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveQuitSideChain, contract.GetUint64Bytes(params.ChainID),
+	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodApproveQuitSideChain, utils.GetUint64Bytes(params.ChainID),
 		s.ContractRef().TxOrigin(), node_manager.Signer)
 	if err != nil {
 		return nil, fmt.Errorf("ApproveQuitSideChain, CheckConsensusSigns error: %v", err)
@@ -334,9 +335,9 @@ func ApproveQuitSideChain(s *contract.ModuleContract) ([]byte, error) {
 		return contract.PackOutputs(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, true)
 	}
 
-	chainidByte := contract.GetUint64Bytes(params.ChainID)
-	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(side_chain_manager_abi.MethodApproveQuitSideChain), chainidByte))
-	s.GetCacheDB().Delete(contract.ConcatKey(cfg.SideChainManagerContractAddress, []byte(SIDE_CHAIN), chainidByte))
+	chainidByte := utils.GetUint64Bytes(params.ChainID)
+	s.GetCacheDB().Delete(utils.ConcatKey(cfg.SideChainManagerContractAddress, []byte(side_chain_manager_abi.MethodApproveQuitSideChain), chainidByte))
+	s.GetCacheDB().Delete(utils.ConcatKey(cfg.SideChainManagerContractAddress, []byte(SIDE_CHAIN), chainidByte))
 
 	err = s.AddNotify(ABI, []string{EventApproveQuitSideChain}, params.ChainID)
 	if err != nil {
@@ -437,7 +438,7 @@ func UpdateFee(s *contract.ModuleContract) ([]byte, error) {
 	addr := crypto.PubkeyToAddress(*pub)
 
 	//check consensus signs
-	id := append(contract.GetUint64Bytes(params.ChainID), contract.GetUint64Bytes(fee.View)...)
+	id := append(utils.GetUint64Bytes(params.ChainID), utils.GetUint64Bytes(fee.View)...)
 	ok, err := node_manager.CheckConsensusSigns(s, side_chain_manager_abi.MethodUpdateFee, id, addr, node_manager.Voter)
 	if err != nil {
 		return nil, fmt.Errorf("UpdateFee, CheckConsensusSigns error: %v", err)

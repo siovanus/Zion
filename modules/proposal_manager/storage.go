@@ -22,8 +22,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/modules/helper"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -131,7 +131,7 @@ func removeExpiredFromProposalList(s *contract.ModuleContract) error {
 			j++
 		} else {
 			// transfer token to community pool
-			err = helper.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
+			err = utils.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
 			if err != nil {
 				return fmt.Errorf("removeExpiredFromProposalList, utils.ModuleTransfer error: %v", err)
 			}
@@ -206,7 +206,7 @@ func removeExpiredFromConfigProposalList(s *contract.ModuleContract) error {
 			j++
 		} else {
 			// transfer token to community pool
-			err = helper.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
+			err = utils.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
 			if err != nil {
 				return fmt.Errorf("removeExpiredFromConfigProposalList, utils.ModuleTransfer error: %v", err)
 			}
@@ -281,7 +281,7 @@ func removeExpiredFromCommunityProposalList(s *contract.ModuleContract) error {
 			j++
 		} else {
 			// transfer token to community pool
-			err = helper.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
+			err = utils.ModuleTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
 			if err != nil {
 				return fmt.Errorf("removeExpiredFromCommunityProposalList, utils.ModuleTransfer error: %v", err)
 			}
@@ -362,21 +362,21 @@ func customDel(db *state.CacheDB, key []byte) {
 // ====================================================================
 
 func proposalIDKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_PROPOSAL_ID))
+	return utils.ConcatKey(this, []byte(SKP_PROPOSAL_ID))
 }
 
 func proposalKey(ID *big.Int) []byte {
-	return contract.ConcatKey(this, []byte(SKP_PROPOSAL), ID.Bytes())
+	return utils.ConcatKey(this, []byte(SKP_PROPOSAL), ID.Bytes())
 }
 
 func proposalListKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_PROPOSAL_LIST))
+	return utils.ConcatKey(this, []byte(SKP_PROPOSAL_LIST))
 }
 
 func configProposalListKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_CONFIG_PROPOSAL_LIST))
+	return utils.ConcatKey(this, []byte(SKP_CONFIG_PROPOSAL_LIST))
 }
 
 func communityProposalListKey() []byte {
-	return contract.ConcatKey(this, []byte(SKP_COMMUNITY_PROPOSAL_LIST))
+	return utils.ConcatKey(this, []byte(SKP_COMMUNITY_PROPOSAL_LIST))
 }

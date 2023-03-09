@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/modules/helper"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"math/big"
 )
 
@@ -101,7 +101,7 @@ func withdrawStakeRewards(s *contract.ModuleContract, validator *Validator, stak
 		return Dec{nil}, fmt.Errorf("withdrawStakeRewards, CalculateStakeRewards error: %v", err)
 	}
 
-	err = helper.ModuleTransfer(s.StateDB(), this, stakeInfo.StakeAddress, rewards.BigInt())
+	err = utils.ModuleTransfer(s.StateDB(), this, stakeInfo.StakeAddress, rewards.BigInt())
 	if err != nil {
 		return Dec{nil}, fmt.Errorf("withdrawStakeRewards, ModuleTransfer error: %v", err)
 	}
@@ -238,7 +238,7 @@ func withdrawCommission(s *contract.ModuleContract, stakeAddress common.Address,
 		return Dec{nil}, fmt.Errorf("withdrawCommission, setValidatorOutstandingRewards error: %v", err)
 	}
 
-	err = helper.ModuleTransfer(s.StateDB(), this, stakeAddress, accumulatedCommission.Amount.BigInt())
+	err = utils.ModuleTransfer(s.StateDB(), this, stakeAddress, accumulatedCommission.Amount.BigInt())
 	if err != nil {
 		return Dec{nil}, fmt.Errorf("withdrawCommission, ModuleTransfer commission error: %v", err)
 	}

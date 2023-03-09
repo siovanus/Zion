@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	"math/big"
 	"strings"
@@ -78,5 +79,5 @@ func BytesToUint256(data []byte) *big.Int {
 
 func doneTxKey(chainID uint64, crossChainID []byte) []byte {
 	contractAddr := cfg.CrossChainManagerContractAddress
-	return contract.ConcatKey(contractAddr, []byte(DONE_TX), contract.GetUint64Bytes(chainID), crossChainID)
+	return utils.ConcatKey(contractAddr, []byte(DONE_TX), utils.GetUint64Bytes(chainID), crossChainID)
 }

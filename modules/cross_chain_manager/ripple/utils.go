@@ -20,6 +20,7 @@ package ripple
 import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -28,7 +29,7 @@ import (
 )
 
 func PutMultisignInfo(module *contract.ModuleContract, id string, multisignInfo *MultisignInfo) error {
-	key := contract.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.MULTISIGN_INFO), []byte(id))
+	key := utils.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.MULTISIGN_INFO), []byte(id))
 	blob, err := rlp.EncodeToBytes(multisignInfo)
 	if err != nil {
 		return fmt.Errorf("PutMultisignInfo, rlp.EncodeToBytes multisignInfo error: %v", err)
@@ -38,7 +39,7 @@ func PutMultisignInfo(module *contract.ModuleContract, id string, multisignInfo 
 }
 
 func GetMultisignInfo(module *contract.ModuleContract, id string) (*MultisignInfo, error) {
-	key := contract.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.MULTISIGN_INFO), []byte(id))
+	key := utils.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.MULTISIGN_INFO), []byte(id))
 	store, err := module.GetCacheDB().Get(key)
 	if err != nil {
 		return nil, fmt.Errorf("GetMultisignInfo, get multisign info store error: %v", err)
@@ -55,14 +56,14 @@ func GetMultisignInfo(module *contract.ModuleContract, id string) (*MultisignInf
 }
 
 func PutTxJsonInfo(module *contract.ModuleContract, fromChainId uint64, txHash []byte, txJson string) {
-	chainIdBytes := contract.GetUint64Bytes(fromChainId)
-	key := contract.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.RIPPLE_TX_INFO), chainIdBytes, txHash)
+	chainIdBytes := utils.GetUint64Bytes(fromChainId)
+	key := utils.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.RIPPLE_TX_INFO), chainIdBytes, txHash)
 	module.GetCacheDB().Put(key, []byte(txJson))
 }
 
 func GetTxJsonInfo(module *contract.ModuleContract, fromChainId uint64, txHash []byte) (string, error) {
-	chainIdBytes := contract.GetUint64Bytes(fromChainId)
-	key := contract.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.RIPPLE_TX_INFO), chainIdBytes, txHash)
+	chainIdBytes := utils.GetUint64Bytes(fromChainId)
+	key := utils.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.RIPPLE_TX_INFO), chainIdBytes, txHash)
 	store, err := module.GetCacheDB().Get(key)
 	if err != nil {
 		return "", fmt.Errorf("GetTxJsonInfo, get multisign info store error: %v", err)

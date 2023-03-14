@@ -68,7 +68,7 @@ var (
 
 func InitSideChainManager() {
 	ABI = GetABI()
-	contract.Contracts[this] = RegisterSideChainManagerContract
+	contract.Contracts.RegisterContract(this, RegisterSideChainManagerContract)
 }
 
 func RegisterSideChainManagerContract(s *contract.ModuleContract) {

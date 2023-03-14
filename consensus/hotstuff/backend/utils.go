@@ -79,15 +79,13 @@ const (
 )
 
 // getSystemMessage assemble system calling fields
-func (s *backend) getSystemMessage(toAddress common.Address, data []byte, value *big.Int) callmsg {
+func (s *backend) getSystemMessage() callmsg {
 	return callmsg{
 		ethereum.CallMsg{
 			From:     cfg.SystemTxSender,
 			Gas:      systemGas,
 			GasPrice: big.NewInt(systemGasPrice),
-			Value:    value,
-			To:       &toAddress,
-			Data:     data,
+			Value:    common.Big0,
 		},
 	}
 }
@@ -107,7 +105,7 @@ func (s *backend) applyTransaction(
 	header *types.Header,
 	chainContext core.ChainContext,
 	commonTxs *[]*types.Transaction, receipts *[]*types.Receipt,
-	sysTxs *[]*types.Transaction, usedGas *uint64, mining bool,
+	sysTx *types.Transaction, usedGas *uint64, mining bool,
 ) (err error) {
 
 	// check msg sender
@@ -131,12 +129,15 @@ func (s *backend) applyTransaction(
 		}
 	} else {
 		// system tx CAN'T be nil or empty
-		if sysTxs == nil || len(*sysTxs) == 0 || (*sysTxs)[0] == nil {
+		if sysTx == nil {
 			return fmt.Errorf("supposed to get a actual transaction, but get none")
 		}
 
 		// check tx hash
-		actualTx := (*sysTxs)[0]
+		actualTx := sysTx
+		if actualTx.To() != nil || actualTx.Data() != nil || actualTx.Value() != common.Big0 {
+			return fmt.Errorf("error format of system tx")
+		}
 		if expectedHash := signer.Hash(expectedTx); !bytes.Equal(signer.Hash(actualTx).Bytes(), expectedHash.Bytes()) {
 			return fmt.Errorf("expected tx hash %v, nonce %d, to %s, value %s, gas %d, gasPrice %s, data %s;"+
 				"get tx hash %v, nonce %d, to %s, value %s, gas %d, gasPrice %s, data %s",
@@ -166,9 +167,7 @@ func (s *backend) applyTransaction(
 			return fmt.Errorf("supposed to miner %s but got %s", header.Coinbase.Hex(), sender.Hex())
 		}
 
-		// reset tx and shift system tx list to next
 		expectedTx = actualTx
-		*sysTxs = (*sysTxs)[1:]
 	}
 
 	// execute system tx and get the receipt
@@ -214,12 +213,9 @@ func applyMessage(
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(context, vm.TxContext{Origin: msg.From(), GasPrice: big.NewInt(0)}, state, chainConfig, vm.Config{})
 	// Apply the transaction to the current state (included in the env)
-	ret, returnGas, err := vmenv.Call(
+	ret, returnGas, err := vmenv.SystemCall(
 		vm.AccountRef(msg.From()),
-		*msg.To(),
-		msg.Data(),
 		msg.Gas(),
-		msg.Value(),
 	)
 	if err != nil {
 		log.Error("apply message failed", "msg", string(ret), "err", err)
@@ -260,15 +256,15 @@ type systemTxContext struct {
 	header   *types.Header
 	chainCtx core.ChainContext
 	txs      *[]*types.Transaction
-	sysTxs   *[]*types.Transaction
+	sysTx    *types.Transaction
 	receipts *[]*types.Receipt
 	usedGas  *uint64
 	mining   bool
 }
 
-func (s *backend) executeTransaction(ctx *systemTxContext, contract common.Address, payload []byte) error {
-	msg := s.getSystemMessage(contract, payload, common.Big0)
-	return s.applyTransaction(ctx.chain, msg, ctx.state, ctx.header, ctx.chainCtx, ctx.txs, ctx.receipts, ctx.sysTxs, ctx.usedGas, ctx.mining)
+func (s *backend) executeTransaction(ctx *systemTxContext) error {
+	msg := s.getSystemMessage()
+	return s.applyTransaction(ctx.chain, msg, ctx.state, ctx.header, ctx.chainCtx, ctx.txs, ctx.receipts, ctx.sysTx, ctx.usedGas, ctx.mining)
 }
 
 func NewDefaultValSet(list []common.Address) hotstuff.ValidatorSet {

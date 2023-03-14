@@ -59,7 +59,7 @@ var (
 )
 
 func InitCrossChainManager() {
-	contract.Contracts[this] = RegisterCrossChainManagerContract
+	contract.Contracts.RegisterContract(this, RegisterCrossChainManagerContract)
 }
 
 func RegisterCrossChainManagerContract(s *contract.ModuleContract) {

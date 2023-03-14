@@ -18,7 +18,6 @@ package core
 
 import (
 	"fmt"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/misc"
@@ -75,16 +74,14 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 	// tx and receipts again after `finalize` finished.
 	engine, isHotstuff := p.engine.(consensus.HotStuff)
 	txNum := len(block.Transactions())
-	systemTxs := make([]*types.Transaction, 0, 2)
-	systemTxIds := make(map[string]int)
+	systemTxs := make([]*types.Transaction, 0, 1)
 	commonTxs := make([]*types.Transaction, 0, txNum)
 
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
 		if isHotstuff {
-			if id, isSystemTx := engine.IsSystemTransaction(tx); isSystemTx {
+			if isSystemTx := engine.IsSystemTransaction(tx, header); isSystemTx {
 				systemTxs = append(systemTxs, tx)
-				systemTxIds[id] += 1
 				continue
 			}
 		}
@@ -101,21 +98,16 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 		receipts = append(receipts, receipt)
 	}
 
-	// the number of system transaction in range of [1, 2] except genesis block.
+	// the number of system transaction is 1 except genesis block.
 	// each system transaction can only be executed once in a single block.
 	if isHotstuff && engine.HasSystemTxHook() {
-		if length := len(systemTxs); (block.NumberU64() > 0 && length < 1) || length > 2 {
+		if length := len(systemTxs); block.NumberU64() > 0 && length != 1 {
 			return nil, nil, 0, fmt.Errorf("system txs list length %d invalid", length)
-		}
-		for id, cnt := range systemTxIds {
-			if cnt > 1 {
-				return nil, nil, 0, fmt.Errorf("system tx %s dumplicated %d ", id, cnt)
-			}
 		}
 	}
 
 	// Finalize the block, applying any consensus engine specific extras (e.g. block rewards)
-	if err := p.engine.Finalize(p.bc, header, statedb, &commonTxs, block.Uncles(), &receipts, &systemTxs, usedGas); err != nil {
+	if err := p.engine.Finalize(p.bc, header, statedb, &commonTxs, block.Uncles(), &receipts, systemTxs[0], usedGas); err != nil {
 		return receipts, allLogs, *usedGas, err
 	}
 

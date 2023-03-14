@@ -110,10 +110,10 @@ func (s *backend) Prepare(chain consensus.ChainHeaderReader, header *types.Heade
 }
 
 func (s *backend) Finalize(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs *[]*types.Transaction,
-	uncles []*types.Header, receipts *[]*types.Receipt, systemTxs *[]*types.Transaction, usedGas *uint64) error {
+	uncles []*types.Header, receipts *[]*types.Receipt, systemTx *types.Transaction, usedGas *uint64) error {
 
 	if s.HasSystemTxHook() {
-		if err := s.executeSystemTxs(chain, header, state, txs, receipts, systemTxs, usedGas, false); err != nil {
+		if err := s.executeSystemTxs(chain, header, state, txs, receipts, systemTx, usedGas, false); err != nil {
 			return err
 		}
 	}
@@ -145,7 +145,7 @@ func (s *backend) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header 
 	return block, receipts, nil
 }
 
-type SystemTxFn func(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs *[]*types.Transaction, receipts *[]*types.Receipt, systemTxs *[]*types.Transaction, usedGas *uint64, mining bool) error
+type SystemTxFn func(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs *[]*types.Transaction, receipts *[]*types.Receipt, systemTx *types.Transaction, usedGas *uint64, mining bool) error
 
 func (s *backend) HasSystemTxHook() bool {
 	return s.systemTxHook != nil
@@ -153,7 +153,7 @@ func (s *backend) HasSystemTxHook() bool {
 
 // executeSystemTxs governance tx execution do not allow failure, the consensus will halt if tx failed and return error.
 func (s *backend) executeSystemTxs(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB,
-	txs *[]*types.Transaction, receipts *[]*types.Receipt, systemTxs *[]*types.Transaction, usedGas *uint64, mining bool) error {
+	txs *[]*types.Transaction, receipts *[]*types.Receipt, systemTx *types.Transaction, usedGas *uint64, mining bool) error {
 
 	// genesis block DONT need to execute system transaction
 	if header.Number.Uint64() == 0 {
@@ -170,15 +170,12 @@ func (s *backend) executeSystemTxs(chain consensus.ChainHeaderReader, header *ty
 		header:   header,
 		chainCtx: chainContext{Chain: chain, engine: s},
 		txs:      txs,
-		sysTxs:   systemTxs,
+		sysTx:    systemTx,
 		receipts: receipts,
 		usedGas:  usedGas,
 		mining:   mining,
 	}
-	if err := s.execEndBlock(ctx); err != nil {
-		return err
-	}
-	return s.execEpochChange(state, header, ctx)
+	return s.execEndBlock(ctx)
 }
 
 func (s *backend) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) (err error) {

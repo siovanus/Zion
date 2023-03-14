@@ -30,8 +30,9 @@ import (
 )
 
 func InitModuleContracts() {
-	node_manager.InitNodeManager()
+	//if these module have system tx, they will be executed at this order
 	economic.InitEconomic()
+	node_manager.InitNodeManager()
 	info_sync.InitInfoSync()
 	cross_chain_manager.InitCrossChainManager()
 	side_chain_manager.InitSideChainManager()

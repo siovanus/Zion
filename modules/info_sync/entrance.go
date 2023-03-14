@@ -33,8 +33,8 @@ var (
 )
 
 func InitInfoSync() {
-	contract.Contracts[this] = RegisterInfoSyncContract
 	ABI = GetABI()
+	contract.Contracts.RegisterContract(this, RegisterInfoSyncContract)
 }
 
 func RegisterInfoSyncContract(s *contract.ModuleContract) {

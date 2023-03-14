@@ -123,22 +123,10 @@ func (m *WithdrawCommissionParam) Encode() ([]byte, error) {
 	return contract.PackMethodWithStruct(ABI, MethodWithdrawCommission, m)
 }
 
-type ChangeEpochParam struct{}
-
-func (m *ChangeEpochParam) Encode() ([]byte, error) {
-	return contract.PackMethod(ABI, MethodChangeEpoch)
-}
-
 type WithdrawParam struct{}
 
 func (m *WithdrawParam) Encode() ([]byte, error) {
 	return contract.PackMethod(ABI, MethodWithdraw)
-}
-
-type EndBlockParam struct{}
-
-func (m *EndBlockParam) Encode() ([]byte, error) {
-	return contract.PackMethod(ABI, MethodEndBlock)
 }
 
 type GetGlobalConfigParam struct{}

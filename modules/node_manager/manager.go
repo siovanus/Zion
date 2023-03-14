@@ -82,7 +82,11 @@ var (
 
 func InitNodeManager() {
 	InitABI()
-	contract.Contracts[this] = RegisterNodeManagerContract
+
+	contract.Contracts.RegisterContract(this, RegisterNodeManagerContract)
+
+	// system tx is executed by this params input order
+	contract.Contracts.SetEndBlockHandler(this, EndBlock, ChangeEpoch)
 }
 
 func RegisterNodeManagerContract(s *contract.ModuleContract) {
@@ -96,10 +100,8 @@ func RegisterNodeManagerContract(s *contract.ModuleContract) {
 	s.Register(MethodWithdraw, Withdraw)
 	s.Register(MethodCancelValidator, CancelValidator)
 	s.Register(MethodWithdrawValidator, WithdrawValidator)
-	s.Register(MethodChangeEpoch, ChangeEpoch)
 	s.Register(MethodWithdrawStakeRewards, WithdrawStakeRewards)
 	s.Register(MethodWithdrawCommission, WithdrawCommission)
-	s.Register(MethodEndBlock, EndBlock)
 
 	// Query
 	s.Register(MethodGetGlobalConfig, GetGlobalConfig)
@@ -641,8 +643,7 @@ func ChangeEpoch(s *contract.ModuleContract) ([]byte, error) {
 
 	// anyone can call this if height reaches
 	if startHeight.Cmp(currentEpochInfo.EndHeight) != 0 {
-		return nil, fmt.Errorf("ChangeEpoch, block height does not reach, current epoch end at %s",
-			currentEpochInfo.EndHeight.String())
+		return contract.PackOutputs(ABI, MethodChangeEpoch, true)
 	}
 
 	epochInfo := &EpochInfo{
@@ -1189,9 +1190,4 @@ func GetStakeRewards(s *contract.ModuleContract) ([]byte, error) {
 	}
 
 	return contract.PackOutputs(ABI, MethodGetStakeRewards, enc)
-}
-
-// GetSpecMethodID for consensus use
-func GetSpecMethodID() map[string]bool {
-	return map[string]bool{"fe6f86f8": true, "083c6323": true}
 }

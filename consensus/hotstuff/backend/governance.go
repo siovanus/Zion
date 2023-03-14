@@ -20,21 +20,15 @@ package backend
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/modules/cfg"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
-)
-
-var (
-	contractAddr = cfg.NodeManagerContractAddress
-	specMethod   = node_manager.GetSpecMethodID()
 )
 
 // FillHeader fulfill the header with validators for miner worker. there are 2 conditions:
@@ -113,55 +107,21 @@ func (s *backend) Validators(height uint64, mining bool) hotstuff.ValidatorSet {
 }
 
 // IsSystemTransaction used by state processor while sync block.
-func (s *backend) IsSystemTransaction(tx *types.Transaction) (string, bool) {
-	// consider that tx is deploy transaction, so the tx.to will be nil
-	if tx == nil || len(tx.Data()) < 4 || tx.To() == nil {
-		return "", false
-	}
-	if *tx.To() != contractAddr {
-		return "", false
-	}
-	id := common.Bytes2Hex(tx.Data()[:4])
-	if _, exist := specMethod[id]; !exist {
-		return id, false
+func (s *backend) IsSystemTransaction(tx *types.Transaction, header *types.Header) bool {
+	if tx == nil || tx.Data() != nil || tx.To() != nil || tx.Value() != common.Big0 {
+		return false
 	}
 
 	signer := types.MakeSigner(s.chainConfig, header.Number)
 	addr, err := signer.Sender(tx)
 	if err != nil {
-		return id, false
+		return false
 	}
 	if header.Coinbase != addr {
-		return id, false
+		return false
 	} else {
-		return id, true
+		return true
 	}
-}
-
-// header height in front of state height
-func (s *backend) execEpochChange(state *state.StateDB, header *types.Header, ctx *systemTxContext) error {
-
-	epoch, err := s.getGovernanceInfo(state)
-	if err != nil {
-		return err
-	}
-
-	end := epoch.EndHeight.Uint64()
-	height := header.Number.Uint64()
-	if height != end-1 {
-		return nil
-	}
-
-	payload, err := new(node_manager.ChangeEpochParam).Encode()
-	if err != nil {
-		return err
-	}
-	if err := s.executeTransaction(ctx, contractAddr, payload); err != nil {
-		return err
-	}
-
-	log.Info("Execute governance EpochChange", "end", end, "current", height)
-	return nil
 }
 
 // getGovernanceInfo call governance contract method and retrieve related info.
@@ -173,13 +133,9 @@ func (s *backend) getGovernanceInfo(state *state.StateDB) (*node_manager.EpochIn
 	return epoch, nil
 }
 
-// execEndBlock execute governance contract method of `EndBlock`
+// execEndBlock execute system tx at end of a block
 func (s *backend) execEndBlock(ctx *systemTxContext) error {
-	payload, err := new(node_manager.EndBlockParam).Encode()
-	if err != nil {
-		return err
-	}
-	return s.executeTransaction(ctx, contractAddr, payload)
+	return s.executeTransaction(ctx)
 }
 
 // getValidatorsByHeader check if current header height is an new epoch start and retrieve the validators.

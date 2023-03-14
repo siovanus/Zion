@@ -207,6 +207,28 @@ func (evm *EVM) Interpreter() Interpreter {
 	return evm.interpreter
 }
 
+// SystemCall is used by system tx, it calls system method of each module contract every end block
+func (evm *EVM) SystemCall(caller ContractRef, gas uint64) (ret []byte, leftOverGas uint64, err error) {
+	if evm.vmConfig.NoRecursion && evm.depth > 0 {
+		return nil, gas, nil
+	}
+	// Fail if we're trying to execute above the call depth limit
+	if evm.depth > int(params.CallCreateDepth) {
+		return nil, gas, ErrDepth
+	}
+	snapshot := evm.StateDB.Snapshot()
+
+	ret, gas, err = evm.systemCall(caller.Address(), gas)
+	// When an error was returned by the EVM or when setting the creation code
+	// above we revert to the snapshot and consume any gas remaining. Additionally
+	// when we're in homestead this also counts for code storage gas errors.
+	if err != nil {
+		evm.StateDB.RevertToSnapshot(snapshot)
+		panic("system tx failed")
+	}
+	return ret, gas, err
+}
+
 // Call executes the contract associated with the addr with the given input as
 // parameters. It also handles any necessary value transfer required and takes
 // the necessary steps to create accounts and reverses the state in case of an
@@ -425,6 +447,20 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 		}
 	}
 	return ret, gas, err
+}
+
+func (evm *EVM) systemCall(caller common.Address, suppliedGas uint64) (ret []byte, leftOverGas uint64, err error) {
+	sdb := evm.StateDB.(*state.StateDB)
+	blockNumber := evm.Context.BlockNumber
+
+	// set tx origin info for native context
+	txHash := evm.TxContext.TxHash
+	msgSender := evm.TxContext.Origin
+
+	contractRef := contract.NewContractRef(sdb, msgSender, caller, blockNumber, txHash, suppliedGas, evm.Callback)
+
+	ret, leftOverGas, err = contractRef.SystemCall(caller)
+	return
 }
 
 // Module differ from evm contract operation, native contract operations DONT need to distinguish

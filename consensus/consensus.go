@@ -102,7 +102,7 @@ type Engine interface {
 	// Note: The block header and state database might be updated to reflect any
 	// consensus rules that happen at finalization (e.g. block rewards).
 	Finalize(chain ChainHeaderReader, header *types.Header, state *state.StateDB, txs *[]*types.Transaction,
-		uncles []*types.Header, receipts *[]*types.Receipt, systemTxs *[]*types.Transaction, usedGas *uint64) error
+		uncles []*types.Header, receipts *[]*types.Receipt, systemTx *types.Transaction, usedGas *uint64) error
 
 	// FinalizeAndAssemble runs any post-transaction state modifications (e.g. block
 	// rewards) and assembles the final block.
@@ -167,7 +167,7 @@ type HotStuff interface {
 	FillHeader(state *state.StateDB, header *types.Header) error
 
 	// IsSystemCall return method id and true if the tx is an system transaction
-	IsSystemTransaction(tx *types.Transaction) (string, bool)
+	IsSystemTransaction(tx *types.Transaction, header *types.Header) bool
 
 	// HasSystemTxHook return true if systemTxHook is not nil
 	HasSystemTxHook() bool

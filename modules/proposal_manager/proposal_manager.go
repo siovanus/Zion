@@ -55,7 +55,7 @@ var (
 
 func InitProposalManager() {
 	InitABI()
-	contract.Contracts[this] = RegisterProposalManagerContract
+	contract.Contracts.RegisterContract(this, RegisterProposalManagerContract)
 }
 
 func RegisterProposalManagerContract(s *contract.ModuleContract) {

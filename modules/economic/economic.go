@@ -44,7 +44,7 @@ var (
 
 func InitEconomic() {
 	InitABI()
-	contract.Contracts[this] = RegisterEconomicContract
+	contract.Contracts.RegisterContract(this, RegisterEconomicContract)
 }
 
 func RegisterEconomicContract(s *contract.ModuleContract) {

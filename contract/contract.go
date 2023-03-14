@@ -29,13 +29,39 @@ import (
 )
 
 type (
-	RegisterService func(native *ModuleContract)
+	RegisterHandler func(native *ModuleContract)
 	MethodHandler   func(contract *ModuleContract) ([]byte, error)
 )
 
+type RegisterService struct {
+	RegisterHandler
+	EndBlockHandler []MethodHandler
+}
+
+func NewRegisterService(r RegisterHandler) *RegisterService {
+	return &RegisterService{RegisterHandler: r}
+}
+
+type RegisterContracts struct {
+	Contracts     map[common.Address]*RegisterService
+	EndBlockOrder []common.Address
+}
+
 var (
-	Contracts = make(map[common.Address]RegisterService)
+	Contracts = &RegisterContracts{Contracts: make(map[common.Address]*RegisterService)}
 )
+
+func (this *RegisterContracts) RegisterContract(addr common.Address, r RegisterHandler) {
+	Contracts.Contracts[addr] = NewRegisterService(r)
+}
+
+func (this *RegisterContracts) SetEndBlockHandler(addr common.Address, ahs ...MethodHandler) {
+	temp := make([]MethodHandler, 0)
+	for _, ah := range ahs {
+		temp = append(temp, ah)
+	}
+	this.Contracts[addr].EndBlockHandler = temp
+}
 
 // the gasUsage for the native contract transaction calculated according to the following formula:
 // *		`gasUsage = gasRatio * gasTable[methodId]`
@@ -88,6 +114,28 @@ func (s *ModuleContract) Register(name string, handler MethodHandler) {
 	s.handlers[methodID] = handler
 }
 
+func (s *ModuleContract) SystemInvoke() ([]byte, error) {
+	s.ref.gasLeft -= basicGas
+
+	// check context
+	if !s.ref.CheckContexts() {
+		return nil, fmt.Errorf("system tx context error")
+	}
+
+	//TODO gas cal
+	var ret []byte
+	for _, addr := range Contracts.EndBlockOrder {
+		for _, handler := range Contracts.Contracts[addr].EndBlockHandler {
+			// execute transaction and cost gas
+			ret, err := handler(s)
+			if err != nil {
+				return ret, err
+			}
+		}
+	}
+	return ret, nil
+}
+
 // Invoke return execute ret and cost gas
 func (s *ModuleContract) Invoke() ([]byte, error) {
 
@@ -112,11 +160,11 @@ func (s *ModuleContract) Invoke() ([]byte, error) {
 	methodID := hexutil.Encode(ctx.Payload[:4])
 
 	// register methods
-	registerHandler, ok := Contracts[ctx.ContractAddress]
+	registerService, ok := Contracts.Contracts[ctx.ContractAddress]
 	if !ok {
 		return nil, fmt.Errorf("failed to find contract: [%x]", ctx.ContractAddress)
 	}
-	registerHandler(s)
+	registerService.RegisterHandler(s)
 
 	// get method handler
 	handler, ok := s.handlers[methodID]
@@ -212,9 +260,9 @@ type ContractRef struct {
 	blockHeight *big.Int
 	origin      common.Address
 	txHash      common.Hash
-	caller     common.Address
-	evmHandler EVMHandler
-	gasLeft    uint64
+	caller      common.Address
+	evmHandler  EVMHandler
+	gasLeft     uint64
 	value       *big.Int
 	txTo        common.Address
 }
@@ -240,6 +288,24 @@ func NewContractRef(
 		txTo:        common.EmptyAddress,
 		value:       common.Big0,
 	}
+}
+
+func (s *ContractRef) SystemCall(
+	caller common.Address,
+) (ret []byte, gasLeft uint64, err error) {
+
+	s.PushContext(&Context{
+		Caller: caller,
+	})
+	defer s.PopContext()
+
+	contract := NewModuleContract(s.stateDB, s)
+	ret, err = contract.SystemInvoke()
+	gasLeft = s.gasLeft
+	if err != nil {
+		log.Error("System contract", "invoke err", err, "txhash", s.txHash.Hex())
+	}
+	return
 }
 
 func (s *ContractRef) ModuleCall(

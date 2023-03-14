@@ -20,19 +20,18 @@ package proposal_manager
 
 import (
 	"crypto/ecdsa"
-	contract2 "github.com/ethereum/go-ethereum/contract"
-	native2 "github.com/ethereum/go-ethereum/modules"
-	"github.com/ethereum/go-ethereum/modules/contract"
-	"github.com/ethereum/go-ethereum/modules/node_manager"
-	"github.com/ethereum/go-ethereum/modules/utils"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/modules/cfg"
+	"github.com/ethereum/go-ethereum/modules/node_manager"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,8 +48,8 @@ func init() {
 
 	node_manager.InitNodeManager()
 	InitProposalManager()
-	sdb = native2.NewTestStateDB()
-	testGenesisPeers, _ = native2.GenerateTestPeers(testGenesisNum)
+	sdb = contract.NewTestStateDB()
+	testGenesisPeers, _ = contract.GenerateTestPeers(testGenesisNum)
 	node_manager.StoreCommunityInfo(sdb, big.NewInt(2000), common.EmptyAddress)
 	node_manager.StoreGenesisEpoch(sdb, testGenesisPeers, testGenesisPeers)
 	node_manager.StoreGenesisGlobalConfig(sdb)
@@ -58,8 +57,8 @@ func init() {
 
 func TestProposalManager(t *testing.T) {
 	extra := uint64(21000000000000)
-	contractRef := contract2.NewContractRef(sdb, common.EmptyAddress, common.EmptyAddress, common.Big1, common.Hash{}, extra, nil)
-	c := native2.NewNativeContract(sdb, contractRef)
+	contractRef := contract.NewContractRef(sdb, common.EmptyAddress, common.EmptyAddress, common.Big1, common.Hash{}, extra, nil)
+	c := contract.NewModuleContract(sdb, contractRef)
 
 	globalConfig, err := node_manager.GetGlobalConfigImpl(c)
 	assert.Nil(t, err)
@@ -83,9 +82,9 @@ func TestProposalManager(t *testing.T) {
 		param.Content = make([]byte, 4000)
 		input, err := param.Encode()
 		assert.Nil(t, err)
-		err = contract.NativeTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
+		err = utils.ModuleTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
 		assert.Nil(t, err)
-		_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "Propose", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+		_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "Propose", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 		assert.Nil(t, err)
 	}
 
@@ -96,9 +95,9 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err := param2.Encode()
 	assert.Nil(t, err)
-	err = contract.NativeTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
+	err = utils.ModuleTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
 	assert.Nil(t, err)
-	_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "ProposeConfig", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "ProposeConfig", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 
 	for i := 0; i < ProposalListLen-1; i++ {
@@ -108,9 +107,9 @@ func TestProposalManager(t *testing.T) {
 		assert.Nil(t, err)
 		input, err := param.Encode()
 		assert.Nil(t, err)
-		err = contract.NativeTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
+		err = utils.ModuleTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
 		assert.Nil(t, err)
-		_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "ProposeConfig", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+		_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "ProposeConfig", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 		assert.Nil(t, err)
 	}
 
@@ -121,9 +120,9 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err = param3.Encode()
 	assert.Nil(t, err)
-	err = contract.NativeTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
+	err = utils.ModuleTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
 	assert.Nil(t, err)
-	_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "ProposeCommunity", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "ProposeCommunity", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 
 	for i := 0; i < ProposalListLen-1; i++ {
@@ -133,9 +132,9 @@ func TestProposalManager(t *testing.T) {
 		assert.Nil(t, err)
 		input, err := param.Encode()
 		assert.Nil(t, err)
-		err = contract.NativeTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
+		err = utils.ModuleTransfer(contractRef.StateDB(), common.EmptyAddress, this, value)
 		assert.Nil(t, err)
-		_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "ProposeCommunity", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+		_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "ProposeCommunity", input, value, common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 		assert.Nil(t, err)
 	}
 
@@ -143,7 +142,7 @@ func TestProposalManager(t *testing.T) {
 	param9 := new(GetProposalListParam)
 	input, err = param9.Encode()
 	assert.Nil(t, err)
-	ret4, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetProposalList", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret4, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetProposalList", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	proposalList := new(ProposalList)
 	err = proposalList.Decode(ret4)
@@ -152,7 +151,7 @@ func TestProposalManager(t *testing.T) {
 	param10 := new(GetConfigProposalListParam)
 	input, err = param10.Encode()
 	assert.Nil(t, err)
-	ret5, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetConfigProposalList", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret5, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetConfigProposalList", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	configProposalList := new(ConfigProposalList)
 	err = configProposalList.Decode(ret5)
@@ -161,7 +160,7 @@ func TestProposalManager(t *testing.T) {
 	param11 := new(GetCommunityProposalListParam)
 	input, err = param11.Encode()
 	assert.Nil(t, err)
-	ret6, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetCommunityProposalList", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret6, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetCommunityProposalList", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	communityProposalList := new(CommunityProposalList)
 	err = communityProposalList.Decode(ret6)
@@ -175,7 +174,7 @@ func TestProposalManager(t *testing.T) {
 	input, err = param4.Encode()
 	assert.Nil(t, err)
 	for i := 0; i < testGenesisNum; i++ {
-		_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "VoteProposal", input, new(big.Int), testGenesisPeers[i], testGenesisPeers[i], 1, extra, sdb)
+		_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "VoteProposal", input, new(big.Int), testGenesisPeers[i], testGenesisPeers[i], 1, extra, sdb)
 		assert.Nil(t, err)
 	}
 	param5 := new(VoteProposalParam)
@@ -184,7 +183,7 @@ func TestProposalManager(t *testing.T) {
 	input, err = param5.Encode()
 	assert.Nil(t, err)
 	for i := 0; i < testGenesisNum; i++ {
-		_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "VoteProposal", input, new(big.Int), testGenesisPeers[i], testGenesisPeers[i], 1, extra, sdb)
+		_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "VoteProposal", input, new(big.Int), testGenesisPeers[i], testGenesisPeers[i], 1, extra, sdb)
 		assert.Nil(t, err)
 	}
 	param14 := new(VoteProposalParam)
@@ -193,7 +192,7 @@ func TestProposalManager(t *testing.T) {
 	input, err = param14.Encode()
 	assert.Nil(t, err)
 	for i := 0; i < testGenesisNum; i++ {
-		_, err = native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "VoteProposal", input, new(big.Int), testGenesisPeers[i], testGenesisPeers[i], 1, extra, sdb)
+		_, err = contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "VoteProposal", input, new(big.Int), testGenesisPeers[i], testGenesisPeers[i], 1, extra, sdb)
 		assert.Nil(t, err)
 	}
 
@@ -203,7 +202,7 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err = param6.Encode()
 	assert.Nil(t, err)
-	ret1, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret1, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	proposal1 := new(Proposal)
 	err = proposal1.Decode(ret1)
@@ -214,7 +213,7 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err = param7.Encode()
 	assert.Nil(t, err)
-	ret2, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret2, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	proposal2 := new(Proposal)
 	err = proposal2.Decode(ret2)
@@ -225,7 +224,7 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err = param8.Encode()
 	assert.Nil(t, err)
-	ret3, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret3, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	proposal3 := new(Proposal)
 	err = proposal3.Decode(ret3)
@@ -236,7 +235,7 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err = param12.Encode()
 	assert.Nil(t, err)
-	ret7, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret7, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	proposal4 := new(Proposal)
 	err = proposal4.Decode(ret7)
@@ -247,7 +246,7 @@ func TestProposalManager(t *testing.T) {
 	assert.Nil(t, err)
 	input, err = param13.Encode()
 	assert.Nil(t, err)
-	ret8, err := native2.TestNativeCall(t, utils.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
+	ret8, err := contract.TestModuleCall(t, cfg.ProposalManagerContractAddress, "GetProposal", input, new(big.Int), common.EmptyAddress, common.EmptyAddress, 1, extra, sdb)
 	assert.Nil(t, err)
 	proposal5 := new(Proposal)
 	err = proposal5.Decode(ret8)

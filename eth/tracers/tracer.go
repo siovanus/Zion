@@ -377,7 +377,7 @@ func New(code string, txCtx vm.TxContext) (*Tracer, error) {
 		copy(makeSlice(ctx.PushFixedBuffer(20), 20), contract[:])
 		return 1
 	})
-	tracer.vm.PushGlobalGoFunction("toContract2", func(ctx *duktape.Context) int {
+	tracer.vm.PushGlobalGoFunction("tocontract", func(ctx *duktape.Context) int {
 		var from common.Address
 		if ptr, size := ctx.GetBuffer(-3); ptr != nil {
 			from = common.BytesToAddress(makeSlice(ptr, size))

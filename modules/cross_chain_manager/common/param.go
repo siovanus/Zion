@@ -18,10 +18,10 @@
 package common
 
 import (
-	"github.com/ethereum/go-ethereum/contract"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/contract"
 )
 
 const (
@@ -32,6 +32,13 @@ const (
 
 	NOTIFY_MAKE_PROOF_EVENT = "makeProof"
 	REPLENISH_EVENT         = "ReplenishEvent"
+)
+
+var (
+	NO_PROOF_ROUTER   = uint64(1)
+	ETH_COMMON_ROUTER = uint64(2)
+
+	RIPPLE_ROUTER = uint64(6)
 )
 
 type ChainHandler interface {
@@ -48,7 +55,7 @@ type MakeTxParam struct {
 	Args                []byte
 }
 
-//used for param from evm contract
+// used for param from evm contract
 type MakeTxParamShim struct {
 	TxHash              []byte
 	CrossChainID        []byte

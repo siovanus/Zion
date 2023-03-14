@@ -20,12 +20,14 @@ package contract
 
 import (
 	"fmt"
+	"math/big"
+	"time"
+
 	abiPkg "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/log"
-	"math/big"
 )
 
 type (
@@ -48,19 +50,18 @@ type RegisterContracts struct {
 }
 
 var (
-	Contracts = &RegisterContracts{Contracts: make(map[common.Address]*RegisterService)}
+	Contracts           = &RegisterContracts{Contracts: make(map[common.Address]*RegisterService)}
+	DebugSpentOpen bool = true
 )
 
-func (this *RegisterContracts) RegisterContract(addr common.Address, r RegisterHandler) {
+func (rc *RegisterContracts) RegisterContract(addr common.Address, r RegisterHandler) {
 	Contracts.Contracts[addr] = NewRegisterService(r)
 }
 
-func (this *RegisterContracts) SetEndBlockHandler(addr common.Address, ahs ...MethodHandler) {
+func (rc *RegisterContracts) SetEndBlockHandler(addr common.Address, ahs ...MethodHandler) {
 	temp := make([]MethodHandler, 0)
-	for _, ah := range ahs {
-		temp = append(temp, ah)
-	}
-	this.Contracts[addr].EndBlockHandler = temp
+	temp = append(temp, ahs...)
+	rc.Contracts[addr].EndBlockHandler = temp
 }
 
 // the gasUsage for the native contract transaction calculated according to the following formula:
@@ -77,6 +78,8 @@ type ModuleContract struct {
 	handlers map[string]MethodHandler // map method id to method handler
 	gasTable map[string]uint64        // map method id to gas usage
 	ab       *abiPkg.ABI
+
+	testPoint int64 // last test time
 }
 
 func NewModuleContract(db *state.StateDB, ref *ContractRef) *ModuleContract {
@@ -230,6 +233,21 @@ func (s *ModuleContract) AddNotify(abi *abiPkg.ABI, topics []string, data ...int
 	emitter.Event(topicIDs, packedData)
 
 	return nil
+}
+
+func (s *ModuleContract) BreakPoint() uint64 {
+	if !DebugSpentOpen {
+		return 0
+	}
+
+	if s.testPoint == 0 {
+		s.testPoint = time.Now().UnixNano()
+		return 0
+	} else {
+		lastTime := s.testPoint
+		s.testPoint = time.Now().UnixNano()
+		return uint64(s.testPoint-lastTime) / uint64(time.Microsecond)
+	}
 }
 
 func topic2CamelCase(topic string) string {

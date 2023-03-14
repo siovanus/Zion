@@ -18,7 +18,6 @@
 package contract
 
 import (
-	"github.com/ethereum/go-ethereum/modules"
 	"math/big"
 	"strings"
 	"testing"
@@ -39,7 +38,7 @@ func TestEventEmitter(t *testing.T) {
 
 	contract := common.HexToAddress("0x05")
 	blockNo := uint64(36)
-	stateDB := modules.NewTestStateDB()
+	stateDB := NewTestStateDB()
 	emmitter := NewEventEmitter(contract, blockNo, stateDB)
 
 	proposer := common.HexToAddress("0x12")

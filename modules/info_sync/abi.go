@@ -20,12 +20,13 @@ package info_sync
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/go_abi/info_sync_abi"
 	"github.com/ethereum/go-ethereum/rlp"
-	"strings"
 )
 
 var (
@@ -103,7 +104,7 @@ func (m *SyncRootInfoParam) Encode() ([]byte, error) {
 	return contract.PackMethodWithStruct(ABI, MethodSyncRootInfo, m)
 }
 
-//Digest Digest calculate the hash of param input
+// Digest Digest calculate the hash of param input
 func (m *SyncRootInfoParam) Digest() ([]byte, error) {
 	input := &SyncRootInfoParam{
 		ChainID:   m.ChainID,

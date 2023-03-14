@@ -22,15 +22,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/contract/utils"
-	"github.com/ethereum/go-ethereum/contracts/native/governance/node_manager"
-	"github.com/ethereum/go-ethereum/core/state"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/devfans/zion-sdk/contracts/native/governance/node_manager"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/contract/utils"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -653,7 +654,7 @@ func TestUnmarshalHeader(t *testing.T) {
 
 	var (
 		blockNum uint64 = 1099
-		epochID uint64 = 5
+		epochID  uint64 = 5
 	)
 	block, err := cli.BlockByNumber(context.Background(), new(big.Int).SetUint64(blockNum))
 	if err != nil {
@@ -680,7 +681,7 @@ func TestUnmarshalHeader(t *testing.T) {
 	t.Logf("origin header json string: %s", string(originHeaderEnc))
 
 	// cache db slot
-	contractAddr := utils2.NodeManagerContractAddress
+	contractAddr := cfg.NodeManagerContractAddress
 	proofHash := node_manager.EpochProofHash(epochID)
 	cacheKey := utils.ConcatKey(contractAddr, []byte("st_proof"), proofHash.Bytes())
 	slot := state.Key2Slot(cacheKey[common.AddressLength:])
@@ -691,7 +692,7 @@ func TestUnmarshalHeader(t *testing.T) {
 	storageKeys := []string{key}
 	t.Logf("slot hex after keccak: %s", key)
 
-	proof, err := cli.ProofAt(context.Background(), utils2.NodeManagerContractAddress, storageKeys, new(big.Int).SetUint64(blockNum))
+	proof, err := cli.ProofAt(context.Background(), cfg.NodeManagerContractAddress, storageKeys, new(big.Int).SetUint64(blockNum))
 	if err != nil {
 		t.Fatal(err)
 	}

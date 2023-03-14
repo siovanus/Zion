@@ -20,19 +20,18 @@ package info_sync
 
 import (
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/modules"
-	"github.com/ethereum/go-ethereum/modules/cross_chain_manager"
-	"github.com/ethereum/go-ethereum/modules/node_manager"
-	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"log"
 	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/modules/cfg"
+	common2 "github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
+	"github.com/ethereum/go-ethereum/modules/node_manager"
+	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 )
@@ -57,8 +56,8 @@ func Init() {
 	node_manager.InitNodeManager()
 	side_chain_manager.InitSideChainManager()
 	InitInfoSync()
-	sdb = modules.NewTestStateDB()
-	testGenesisPeers, testGenesisPri = modules.GenerateTestPeers(testGenesisNum)
+	sdb = contract.NewTestStateDB()
+	testGenesisPeers, testGenesisPri = contract.GenerateTestPeers(testGenesisNum)
 	node_manager.StoreGenesisEpoch(sdb, testGenesisPeers, testGenesisPeers)
 
 	putSideChain()
@@ -71,7 +70,7 @@ func putSideChain() {
 	contract := contract.NewModuleContract(sdb, contractRef)
 
 	err := side_chain_manager.PutSideChain(contract, &side_chain_manager.SideChain{
-		Router:  cross_chain_manager.NO_PROOF_ROUTER,
+		Router:  common2.NO_PROOF_ROUTER,
 		ChainID: CHAIN_ID,
 	})
 	if err != nil {
@@ -112,7 +111,7 @@ func TestNoAuthSyncRootInfo(t *testing.T) {
 
 	caller := crypto.PubkeyToAddress(*pub)
 	extra := uint64(21000000000000)
-	_, err = modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "SyncRootInfo", input, new(big.Int), caller, caller, extra, sdb)
+	_, err = contract.TestModuleCall(t, cfg.InfoSyncContractAddress, "SyncRootInfo", input, new(big.Int), caller, caller, extra, sdb)
 	assert.NotNil(t, err)
 }
 
@@ -140,7 +139,7 @@ func TestNormalSyncRootInfo(t *testing.T) {
 
 		input, err := param.Encode()
 		assert.Nil(t, err)
-		ret, err := modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "SyncRootInfo", input, new(big.Int), caller, caller, extra, sdb)
+		ret, err := contract.TestModuleCall(t, cfg.InfoSyncContractAddress, "SyncRootInfo", input, new(big.Int), caller, caller, extra, sdb)
 		assert.Nil(t, err)
 		result, err := contract.PackOutputs(ABI, MethodSyncRootInfo, true)
 		assert.Nil(t, err)
@@ -153,7 +152,7 @@ func TestNormalSyncRootInfo(t *testing.T) {
 	input, err := q1.Encode()
 	assert.Nil(t, err)
 	extra := uint64(21000000000000)
-	ret1, err := modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "GetInfo", input, new(big.Int), extra, sdb)
+	ret1, err := contract.TestModuleCall(t, cfg.InfoSyncContractAddress, "GetInfo", input, new(big.Int), extra, sdb)
 	rootInfo := new(GetInfoOutput)
 	err = rootInfo.Decode(ret1)
 	assert.Nil(t, err)
@@ -164,7 +163,7 @@ func TestNormalSyncRootInfo(t *testing.T) {
 	}
 	input, err = q2.Encode()
 	assert.Nil(t, err)
-	ret2, err := modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "GetInfo", input, new(big.Int), extra, sdb)
+	ret2, err := contract.TestModuleCall(t, cfg.InfoSyncContractAddress, "GetInfo", input, new(big.Int), extra, sdb)
 	rootInfo = new(GetInfoOutput)
 	err = rootInfo.Decode(ret2)
 	assert.Nil(t, err)
@@ -172,7 +171,7 @@ func TestNormalSyncRootInfo(t *testing.T) {
 	q3 := &GetInfoHeightParam{CHAIN_ID}
 	input, err = q3.Encode()
 	assert.Nil(t, err)
-	ret3, err := modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "GetInfoHeight", input, new(big.Int), extra, sdb)
+	ret3, err := contract.TestModuleCall(t, cfg.InfoSyncContractAddress, "GetInfoHeight", input, new(big.Int), extra, sdb)
 	height := new(GetInfoHeightOutput)
 	err = height.Decode(ret3)
 	assert.Nil(t, err)
@@ -188,6 +187,6 @@ func TestReplenish(t *testing.T) {
 	extra := uint64(21000000000000)
 	input, err := param.Encode()
 	assert.Nil(t, err)
-	_, err = modules.TestModuleCall(t, utils2.InfoSyncContractAddress, "Replenish", input, new(big.Int), extra, sdb)
+	_, err = contract.TestModuleCall(t, cfg.InfoSyncContractAddress, "Replenish", input, new(big.Int), extra, sdb)
 	assert.Nil(t, err)
 }

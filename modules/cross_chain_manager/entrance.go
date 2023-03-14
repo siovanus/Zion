@@ -20,6 +20,7 @@ package cross_chain_manager
 
 import (
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
@@ -51,13 +52,6 @@ var (
 	}
 )
 
-var (
-	NO_PROOF_ROUTER   = uint64(1)
-	ETH_COMMON_ROUTER = uint64(2)
-
-	RIPPLE_ROUTER = uint64(6)
-)
-
 func InitCrossChainManager() {
 	contract.Contracts.RegisterContract(this, RegisterCrossChainManagerContract)
 }
@@ -79,11 +73,11 @@ func RegisterCrossChainManagerContract(s *contract.ModuleContract) {
 
 func GetChainHandler(router uint64) (common.ChainHandler, error) {
 	switch router {
-	case NO_PROOF_ROUTER:
+	case common.NO_PROOF_ROUTER:
 		return no_proof.NewNoProofHandler(), nil
-	case ETH_COMMON_ROUTER:
+	case common.ETH_COMMON_ROUTER:
 		return eth_common.NewHandler(), nil
-	case RIPPLE_ROUTER:
+	case common.RIPPLE_ROUTER:
 		return ripple.NewRippleHandler(), nil
 	default:
 		return nil, fmt.Errorf("not a supported router:%d", router)
@@ -167,7 +161,7 @@ func ImportOuterTransfer(s *contract.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("ImportExTransfer, side chain %d is not registered", dstChainID)
 	}
 
-	if dstChain.Router == RIPPLE_ROUTER {
+	if dstChain.Router == common.RIPPLE_ROUTER {
 		err := ripple.NewRippleHandler().MakeTransaction(s, txParam, srcChainID)
 		if err != nil {
 			return nil, err

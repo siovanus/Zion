@@ -22,15 +22,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/contract"
-	common2 "github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
-	icom "github.com/ethereum/go-ethereum/modules/info_sync"
-	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/light"
+	common2 "github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
+	"github.com/ethereum/go-ethereum/modules/info_sync"
+	"github.com/ethereum/go-ethereum/modules/side_chain_manager"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 )
@@ -85,7 +85,7 @@ func (h *Handler) VerifyDepositProposal(service *contract.ModuleContract,
 		return
 	}
 
-	info, err := icom.GetRootInfo(service, sideChain.ChainID, params.Height)
+	info, err := info_sync.GetRootInfo(service, sideChain.ChainID, params.Height)
 	if err != nil {
 		err = fmt.Errorf("get root info failure, err %v", err)
 		return

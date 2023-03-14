@@ -20,25 +20,24 @@ package economic
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/modules"
-	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
-	node_manager2 "github.com/ethereum/go-ethereum/modules/node_manager"
-	utils2 "github.com/ethereum/go-ethereum/modules/utils"
 	"math/big"
 	"os"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/modules/cfg"
+	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
+	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
 	InitABI()
-	node_manager2.InitNodeManager()
+	node_manager.InitNodeManager()
 	InitEconomic()
 	os.Exit(m.Run())
 }
@@ -50,7 +49,7 @@ func TestName(t *testing.T) {
 	payload, err := new(MethodContractNameInput).Encode()
 	assert.NoError(t, err)
 
-	raw, err := modules.TestNativeCall(t, this, name, payload)
+	raw, err := contract.TestModuleCall(t, this, name, payload, common.Big0)
 	assert.NoError(t, err)
 	var got string
 	assert.NoError(t, contract.UnpackOutputs(ABI, name, &got, raw))
@@ -61,7 +60,6 @@ func TestName(t *testing.T) {
 // the flag of -count=1 to avoid the affect of test cache.
 // cmd:
 // go test -v -count=1 -cover github.com/ethereum/go-ethereum/contracts/native/economic -run TestTotalSupply
-//
 func TestTotalSupply(t *testing.T) {
 
 	// genesis supply should be 100,000,000 and total supply has no upper limit.
@@ -80,7 +78,7 @@ func TestTotalSupply(t *testing.T) {
 		var supply *big.Int
 
 		payload, _ := new(MethodTotalSupplyInput).Encode()
-		raw, err := modules.TestNativeCall(t, this, name, payload, tc.height)
+		raw, err := contract.TestModuleCall(t, this, name, payload, common.Big0, tc.height)
 		assert.NoError(t, err)
 
 		if tc.testABI {
@@ -120,8 +118,8 @@ func TestReward(t *testing.T) {
 		got := new(MethodRewardOutput)
 
 		payload, _ := new(MethodRewardInput).Encode()
-		raw, err := modules.TestNativeCall(t, this, name, payload, tc.height, func(state *state.StateDB) {
-			node_manager2.StoreCommunityInfo(state, big.NewInt(int64(tc.rate)), tc.pool)
+		raw, err := contract.TestModuleCall(t, this, name, payload, common.Big0, tc.height, func(state *state.StateDB) {
+			node_manager.StoreCommunityInfo(state, big.NewInt(int64(tc.rate)), tc.pool)
 		})
 		if tc.err == nil {
 			assert.NoError(t, err)
@@ -130,7 +128,7 @@ func TestReward(t *testing.T) {
 			assert.Equal(t, 2, len(got.List))
 			assert.Equal(t, tc.pool, got.List[0].Address)
 			assert.Equal(t, tc.expectPoolAmount, got.List[0].Amount)
-			assert.Equal(t, utils2.NodeManagerContractAddress, got.List[1].Address)
+			assert.Equal(t, cfg.NodeManagerContractAddress, got.List[1].Address)
 			assert.Equal(t, tc.expectStakeAmount, got.List[1].Amount)
 		} else {
 			t.Logf("exepct err %v, got %v", tc.err, err)
@@ -145,10 +143,10 @@ func TestTransfer(t *testing.T) {
 		amount = params.ZNT1
 	)
 
-	state := modules.NewTestStateDB()
+	state := contract.NewTestStateDB()
 	state.AddBalance(from, amount)
 
-	_, ctx := modules.GenerateTestContext(t, state)
+	_, ctx := contract.GenerateTestContext(t, common.Big0, from, state)
 	if state.GetBalance(from).Cmp(amount) < 0 {
 		t.Error("balance not enough")
 	}

@@ -20,14 +20,14 @@ package node_manager
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/contract/utils"
-	"github.com/ethereum/go-ethereum/modules/cfg"
-	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
 	"math/big"
 	"sort"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
+	"github.com/ethereum/go-ethereum/modules/cfg"
+	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 

@@ -9,10 +9,8 @@ interface INodeManager {
     function withdraw() external returns(bool success);
     function cancelValidator(address consensusAddress) external returns(bool success);
     function withdrawValidator(address consensusAddress) external returns(bool success);
-    function changeEpoch() external returns(bool success);
     function withdrawStakeRewards(address consensusAddress) external returns(bool success);
     function withdrawCommission(address consensusAddress) external returns(bool success);
-    function endBlock() external returns(bool success);
     function getGlobalConfig() external view returns (bytes memory);
     function getCommunityInfo() external view returns (bytes memory);
     function getCurrentEpochInfo() external view returns (bytes memory);

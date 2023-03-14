@@ -20,6 +20,7 @@ package node_manager
 
 import (
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/contract"
@@ -153,8 +154,5 @@ func CheckProposerAuthority(addr common.Address, epoch *EpochInfo) error {
 }
 
 func EpochChangeAtNextBlock(curHeight, epochStartHeight uint64) bool {
-	if curHeight+1 == epochStartHeight {
-		return true
-	}
-	return false
+	return curHeight+1 == epochStartHeight
 }

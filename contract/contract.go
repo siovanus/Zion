@@ -125,7 +125,13 @@ func (s *ModuleContract) SystemInvoke() ([]byte, error) {
 		return nil, fmt.Errorf("system tx context error")
 	}
 
-	//TODO gas cal
+	// check gas usage, the min value should be `basicGas`
+	gasUsage := basicGas
+	// refund basic gas before tx get into `handler`
+	s.ref.gasLeft += basicGas
+	if gasLeft := s.ref.gasLeft; gasLeft < gasUsage {
+		return nil, fmt.Errorf("gasLeft not enough, need %d, got %d", gasUsage, gasLeft)
+	}
 	var ret []byte
 	for _, addr := range Contracts.EndBlockOrder {
 		for _, handler := range Contracts.Contracts[addr].EndBlockHandler {

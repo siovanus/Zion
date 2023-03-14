@@ -21,6 +21,10 @@ package side_chain_manager
 import (
 	"errors"
 	"fmt"
+	"math/big"
+	"sort"
+
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
@@ -29,10 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/modules/go_abi/side_chain_manager_abi"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
-	"sort"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 const (

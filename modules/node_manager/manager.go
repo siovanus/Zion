@@ -57,10 +57,8 @@ var (
 		MethodWithdraw:                       349125,
 		MethodCancelValidator:                333375,
 		MethodWithdrawValidator:              328125,
-		MethodChangeEpoch:                    200000,
 		MethodWithdrawStakeRewards:           286125,
 		MethodWithdrawCommission:             149625,
-		MethodEndBlock:                       150000,
 		MethodGetGlobalConfig:                91875,
 		MethodGetCommunityInfo:               81375,
 		MethodGetCurrentEpochInfo:            112875,
@@ -623,6 +621,7 @@ func WithdrawValidator(s *contract.ModuleContract) ([]byte, error) {
 	return contract.PackOutputs(ABI, MethodWithdrawValidator, true)
 }
 
+// system method
 func ChangeEpoch(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	if ctx.Caller != s.ContractRef().TxOrigin() || ctx.Caller != cfg.SystemTxSender {
@@ -643,7 +642,7 @@ func ChangeEpoch(s *contract.ModuleContract) ([]byte, error) {
 
 	// anyone can call this if height reaches
 	if startHeight.Cmp(currentEpochInfo.EndHeight) != 0 {
-		return contract.PackOutputs(ABI, MethodChangeEpoch, true)
+		return nil, nil
 	}
 
 	epochInfo := &EpochInfo{
@@ -728,7 +727,7 @@ func ChangeEpoch(s *contract.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ChangeEpoch, AddNotify error: %v", err)
 	}
-	return contract.PackOutputs(ABI, MethodChangeEpoch, true)
+	return nil, nil
 }
 
 func WithdrawStakeRewards(s *contract.ModuleContract) ([]byte, error) {
@@ -808,6 +807,7 @@ func WithdrawCommission(s *contract.ModuleContract) ([]byte, error) {
 	return contract.PackOutputs(ABI, MethodWithdrawCommission, true)
 }
 
+// system method
 func EndBlock(s *contract.ModuleContract) ([]byte, error) {
 	ctx := s.ContractRef().CurrentContext()
 	if ctx.Caller != s.ContractRef().TxOrigin() || ctx.Caller != cfg.SystemTxSender {
@@ -872,7 +872,7 @@ func EndBlock(s *contract.ModuleContract) ([]byte, error) {
 		return nil, fmt.Errorf("EndBlock, setOutstandingRewards error: %v", err)
 	}
 
-	return contract.PackOutputs(ABI, MethodEndBlock, true)
+	return nil, nil
 }
 
 func GetGlobalConfig(s *contract.ModuleContract) ([]byte, error) {

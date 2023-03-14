@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package economic
+package economic_abi
 
 import (
 	"math/big"
@@ -29,18 +29,15 @@ var (
 var (
 	MethodName = "name"
 
-	MethodReward = "reward"
-
 	MethodTotalSupply = "totalSupply"
 )
 
 // IEconomicABI is the input ABI used to generate the binding from.
-const IEconomicABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"reward\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const IEconomicABI = "[{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // IEconomicFuncSigs maps the 4-byte function signature to its string representation.
 var IEconomicFuncSigs = map[string]string{
 	"06fdde03": "name()",
-	"228cb733": "reward()",
 	"18160ddd": "totalSupply()",
 }
 
@@ -217,37 +214,6 @@ func (_IEconomic *IEconomicCallerSession) Name() (string, error) {
 	return _IEconomic.Contract.Name(&_IEconomic.CallOpts)
 }
 
-// Reward is a free data retrieval call binding the contract method 0x228cb733.
-//
-// Solidity: function reward() view returns(bytes)
-func (_IEconomic *IEconomicCaller) Reward(opts *bind.CallOpts) ([]byte, error) {
-	var out []interface{}
-	err := _IEconomic.contract.Call(opts, &out, "reward")
-
-	if err != nil {
-		return *new([]byte), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([]byte)).(*[]byte)
-
-	return out0, err
-
-}
-
-// Reward is a free data retrieval call binding the contract method 0x228cb733.
-//
-// Solidity: function reward() view returns(bytes)
-func (_IEconomic *IEconomicSession) Reward() ([]byte, error) {
-	return _IEconomic.Contract.Reward(&_IEconomic.CallOpts)
-}
-
-// Reward is a free data retrieval call binding the contract method 0x228cb733.
-//
-// Solidity: function reward() view returns(bytes)
-func (_IEconomic *IEconomicCallerSession) Reward() ([]byte, error) {
-	return _IEconomic.Contract.Reward(&_IEconomic.CallOpts)
-}
-
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
@@ -278,3 +244,4 @@ func (_IEconomic *IEconomicSession) TotalSupply() (*big.Int, error) {
 func (_IEconomic *IEconomicCallerSession) TotalSupply() (*big.Int, error) {
 	return _IEconomic.Contract.TotalSupply(&_IEconomic.CallOpts)
 }
+

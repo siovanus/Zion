@@ -20,16 +20,12 @@ package economic
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/modules/cfg"
-	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
-	"io"
-	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/modules/cfg"
+	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
 )
 
 const contractName = "economic"
@@ -72,53 +68,3 @@ func (m *MethodTotalSupplyInput) Encode() ([]byte, error) {
 	return contract.PackMethod(ABI, MethodTotalSupply)
 }
 func (m *MethodTotalSupplyInput) Decode(payload []byte) error { return nil }
-
-type MethodRewardInput struct{}
-
-func (m *MethodRewardInput) Encode() ([]byte, error) {
-	return contract.PackMethod(ABI, MethodReward)
-}
-func (m *MethodRewardInput) Decode(payload []byte) error { return nil }
-
-type MethodRewardOutput struct {
-	List []*RewardAmount
-}
-
-func (m *MethodRewardOutput) Encode() ([]byte, error) {
-	enc, err := rlp.EncodeToBytes(m.List)
-	if err != nil {
-		return nil, err
-	}
-	return contract.PackOutputs(ABI, MethodReward, enc)
-}
-func (m *MethodRewardOutput) Decode(payload []byte) error {
-	var data struct {
-		List []byte
-	}
-	if err := contract.UnpackOutputs(ABI, MethodReward, &data, payload); err != nil {
-		return err
-	}
-	return rlp.DecodeBytes(data.List, &m.List)
-}
-
-type RewardAmount struct {
-	Address common.Address
-	Amount  *big.Int
-}
-
-func (m *RewardAmount) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, []interface{}{m.Address, m.Amount})
-}
-
-func (m *RewardAmount) DecodeRLP(s *rlp.Stream) error {
-	var data struct {
-		Address common.Address
-		Amount  *big.Int
-	}
-
-	if err := s.Decode(&data); err != nil {
-		return err
-	}
-	m.Address, m.Amount = data.Address, data.Amount
-	return nil
-}

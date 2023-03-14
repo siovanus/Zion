@@ -18,6 +18,8 @@
 
 package hotstuff
 
+import "math/big"
+
 type SelectProposerPolicy uint64
 
 const (
@@ -49,3 +51,7 @@ var DefaultEventDrivenConfig = &Config{
 	Epoch:          0,
 	Test:           false,
 }
+
+var (
+	GenesisBlockPerEpoch = new(big.Int).SetUint64(400000)
+)

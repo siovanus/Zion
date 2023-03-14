@@ -19,14 +19,15 @@
 package node_manager
 
 import (
+	"math"
+	"math/big"
+	"sync/atomic"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math"
-	"math/big"
-	"sync/atomic"
 )
 
 type LockStatus uint8
@@ -56,14 +57,14 @@ type Validator struct {
 	StakeAddress     common.Address
 	ConsensusAddress common.Address
 	SignerAddress    common.Address
-	ProposalAddress common.Address
-	Commission      *Commission
-	Status          LockStatus
-	Jailed          bool
-	UnlockHeight    *big.Int
-	TotalStake      Dec
-	SelfStake       Dec
-	Desc            string
+	ProposalAddress  common.Address
+	Commission       *Commission
+	Status           LockStatus
+	Jailed           bool
+	UnlockHeight     *big.Int
+	TotalStake       Dec
+	SelfStake        Dec
+	Desc             string
 }
 
 func (m *Validator) Decode(payload []byte) error {
@@ -212,9 +213,7 @@ func (m *EpochInfo) MemberList() []common.Address {
 	if m == nil || m.Validators == nil || len(m.Validators) == 0 {
 		return list
 	}
-	for _, v := range m.Validators {
-		list = append(list, v)
-	}
+	list = append(list, m.Validators...)
 	return list
 }
 

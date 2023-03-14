@@ -20,12 +20,12 @@ package economic
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
-	"math/big"
-
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -33,7 +33,6 @@ var (
 	gasTable = map[string]uint64{
 		MethodName:        39375,
 		MethodTotalSupply: 23625,
-		MethodReward:      73500,
 	}
 )
 
@@ -45,6 +44,8 @@ var (
 func InitEconomic() {
 	InitABI()
 	contract.Contracts.RegisterContract(this, RegisterEconomicContract)
+	// system tx is executed by this params input order
+	contract.Contracts.SetEndBlockHandler(this, Reward)
 }
 
 func RegisterEconomicContract(s *contract.ModuleContract) {
@@ -52,7 +53,6 @@ func RegisterEconomicContract(s *contract.ModuleContract) {
 
 	s.Register(MethodName, Name)
 	s.Register(MethodTotalSupply, TotalSupply)
-	s.Register(MethodReward, Reward)
 }
 
 func Name(s *contract.ModuleContract) ([]byte, error) {
@@ -71,6 +71,11 @@ func TotalSupply(s *contract.ModuleContract) ([]byte, error) {
 }
 
 func Reward(s *contract.ModuleContract) ([]byte, error) {
+	height := s.ContractRef().BlockHeight()
+	// genesis block do not need to distribute reward
+	if height.Uint64() == 0 {
+		return nil, nil
+	}
 
 	community, err := node_manager.GetCommunityInfoFromDB(s.StateDB())
 	if err != nil {
@@ -83,23 +88,15 @@ func Reward(s *contract.ModuleContract) ([]byte, error) {
 	rewardFactor := node_manager.NewDecFromBigInt(community.CommunityRate)
 	poolRwdAmt, err := rewardPerBlock.MulWithPercentDecimal(rewardFactor)
 	if err != nil {
-		return nil, fmt.Errorf("Calculate pool reward amount failed, err: %v ", err)
+		return nil, fmt.Errorf("calculate pool reward amount failed, err: %v ", err)
 	}
 	stakingRwdAmt, err := rewardPerBlock.Sub(poolRwdAmt)
 	if err != nil {
-		return nil, fmt.Errorf("Calculate staking reward amount, failed, err: %v ", err)
+		return nil, fmt.Errorf("calculate staking reward amount, failed, err: %v ", err)
 	}
 
-	poolRwd := &RewardAmount{
-		Address: poolAddr,
-		Amount:  poolRwdAmt.BigInt(),
-	}
-	stakingRwd := &RewardAmount{
-		Address: cfg.NodeManagerContractAddress,
-		Amount:  stakingRwdAmt.BigInt(),
-	}
+	s.StateDB().AddBalance(poolAddr, poolRwdAmt.BigInt())
+	s.StateDB().AddBalance(cfg.NodeManagerContractAddress, stakingRwdAmt.BigInt())
 
-	output := new(MethodRewardOutput)
-	output.List = []*RewardAmount{poolRwd, stakingRwd}
-	return output.Encode()
+	return nil, nil
 }

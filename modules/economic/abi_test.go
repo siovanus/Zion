@@ -19,12 +19,11 @@
 package economic
 
 import (
-	"github.com/ethereum/go-ethereum/contract"
-	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
-	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
+	. "github.com/ethereum/go-ethereum/modules/go_abi/economic_abi"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,28 +41,6 @@ func TestABIMethodTotalSupply(t *testing.T) {
 	assert.NoError(t, err)
 
 	got := new(MethodTotalSupplyInput)
-	assert.NoError(t, got.Decode(enc))
-
-	assert.Equal(t, expect, got)
-}
-
-func TestABIMethodReward(t *testing.T) {
-	expect := &MethodRewardOutput{
-		List: []*RewardAmount{
-			{
-				Address: common.HexToAddress("0x0123"),
-				Amount:  big.NewInt(12),
-			},
-			{
-				Address: common.HexToAddress("0x0124"),
-				Amount:  big.NewInt(15),
-			},
-		},
-	}
-	enc, err := expect.Encode()
-	assert.NoError(t, err)
-
-	got := new(MethodRewardOutput)
 	assert.NoError(t, got.Decode(enc))
 
 	assert.Equal(t, expect, got)

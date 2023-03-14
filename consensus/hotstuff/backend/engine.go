@@ -160,10 +160,6 @@ func (s *backend) executeSystemTxs(chain consensus.ChainHeaderReader, header *ty
 		return nil
 	}
 
-	if err := s.reward(state, header.Number); err != nil {
-		return err
-	}
-
 	ctx := &systemTxContext{
 		chain:    chain,
 		state:    state,

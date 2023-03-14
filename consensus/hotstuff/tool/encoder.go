@@ -23,7 +23,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"fmt"
-	nm "github.com/ethereum/go-ethereum/modules/node_manager"
 	"strings"
 	"sync"
 
@@ -50,7 +49,7 @@ func EncodeGenesisExtra(validators []common.Address) (string, error) {
 	// 3. construct extra
 	ist := &types.HotstuffExtra{
 		StartHeight:   0,
-		EndHeight:     nm.GenesisBlockPerEpoch.Uint64(),
+		EndHeight:     hotstuff.GenesisBlockPerEpoch.Uint64(),
 		Validators:    validators,
 		Seal:          make([]byte, types.HotstuffExtraSeal),
 		CommittedSeal: [][]byte{},

@@ -18,6 +18,10 @@ package vm
 
 import (
 	"errors"
+	"math/big"
+	"sync/atomic"
+	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -25,9 +29,6 @@ import (
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
-	"math/big"
-	"sync/atomic"
-	"time"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -466,7 +467,6 @@ func (evm *EVM) systemCall(caller common.Address, suppliedGas uint64) (ret []byt
 // Module differ from evm contract operation, native contract operations DONT need to distinguish
 // `call`, `staticCall`, `delegateCall` and `callCode`, because the context of native contract contains
 // the entire stateDB, and there is no need to find the safe caller's memory storage in calling operation.
-//
 func (evm *EVM) moduleCall(caller, toContract common.Address, input []byte, suppliedGas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
 	sdb := evm.StateDB.(*state.StateDB)
 	blockNumber := evm.Context.BlockNumber

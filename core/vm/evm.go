@@ -209,7 +209,7 @@ func (evm *EVM) Interpreter() Interpreter {
 
 // SystemCall is used by system tx, it calls system method of each module contract every end block
 func (evm *EVM) SystemCall(caller ContractRef, gas uint64) (ret []byte, leftOverGas uint64, err error) {
-	if evm.vmConfig.NoRecursion && evm.depth > 0 {
+	if evm.Config.NoRecursion && evm.depth > 0 {
 		return nil, gas, nil
 	}
 	// Fail if we're trying to execute above the call depth limit

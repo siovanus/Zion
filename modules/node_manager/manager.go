@@ -28,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -45,39 +46,6 @@ var (
 	WITHDRAW_COMMISSION_EVENT    = EventWithdrawCommission
 )
 
-// the real gas usage of `createValidator`,`changeEpoch`,`endBlock` are 1291500, 5087250 and 343875.
-// in order to lower the total gas usage in an entire block, modify them to be 300000 and 200000, 150000.
-var (
-	gasTable = map[string]uint64{
-		MethodCreateValidator:                300000,
-		MethodUpdateValidator:                170625,
-		MethodUpdateCommission:               126000,
-		MethodStake:                          262500,
-		MethodUnStake:                        824250,
-		MethodWithdraw:                       349125,
-		MethodCancelValidator:                333375,
-		MethodWithdrawValidator:              328125,
-		MethodWithdrawStakeRewards:           286125,
-		MethodWithdrawCommission:             149625,
-		MethodGetGlobalConfig:                91875,
-		MethodGetCommunityInfo:               81375,
-		MethodGetCurrentEpochInfo:            112875,
-		MethodGetEpochInfo:                   86625,
-		MethodGetAllValidators:               170625,
-		MethodGetValidator:                   60375,
-		MethodGetStakeInfo:                   76125,
-		MethodGetUnlockingInfo:               357000,
-		MethodGetStakeStartingInfo:           73500,
-		MethodGetAccumulatedCommission:       63000,
-		MethodGetValidatorSnapshotRewards:    128625,
-		MethodGetValidatorAccumulatedRewards: 60375,
-		MethodGetValidatorOutstandingRewards: 65625,
-		MethodGetTotalPool:                   60375,
-		MethodGetOutstandingRewards:          60375,
-		MethodGetStakeRewards:                128625,
-	}
-)
-
 func InitNodeManager() {
 	InitABI()
 
@@ -88,8 +56,6 @@ func InitNodeManager() {
 }
 
 func RegisterNodeManagerContract(s *contract.ModuleContract) {
-	s.Prepare(ABI, gasTable)
-
 	s.Register(MethodCreateValidator, CreateValidator)
 	s.Register(MethodUpdateValidator, UpdateValidator)
 	s.Register(MethodUpdateCommission, UpdateCommission)
@@ -455,7 +421,10 @@ func UnStake(s *contract.ModuleContract) ([]byte, error) {
 		}
 	}
 	if validator.TotalStake.IsZero() && validator.SelfStake.IsZero() {
-		delValidator(s, params.ConsensusAddress)
+		err = delValidator(s, params.ConsensusAddress)
+		if err != nil {
+			return nil, err
+		}
 		err = AfterValidatorRemoved(s, validator)
 		if err != nil {
 			return nil, fmt.Errorf("UnStake, AfterValidatorRemoved error: %v", err)
@@ -602,7 +571,10 @@ func WithdrawValidator(s *contract.ModuleContract) ([]byte, error) {
 	}
 	validator.SelfStake = NewDecFromBigInt(new(big.Int))
 	if validator.TotalStake.IsZero() {
-		delValidator(s, params.ConsensusAddress)
+		err = delValidator(s, params.ConsensusAddress)
+		if err != nil {
+			return nil, err
+		}
 		err = AfterValidatorRemoved(s, validator)
 		if err != nil {
 			return nil, fmt.Errorf("WithdrawValidator, AfterValidatorRemoved error: %v", err)
@@ -646,13 +618,15 @@ func ChangeEpoch(s *contract.ModuleContract) ([]byte, error) {
 	}
 
 	epochInfo := &EpochInfo{
-		ID:          new(big.Int).Add(currentEpochInfo.ID, common.Big1),
-		Validators:  make([]common.Address, 0, globalConfig.ConsensusValidatorNum),
-		Signers:     make([]common.Address, 0, globalConfig.ConsensusValidatorNum),
-		Voters:      make([]common.Address, 0, globalConfig.VoterValidatorNum),
-		Proposers:   make([]common.Address, 0, globalConfig.ConsensusValidatorNum),
-		StartHeight: startHeight,
-		EndHeight:   new(big.Int).Add(startHeight, globalConfig.BlockPerEpoch),
+		EpochInfoConfig: params.EpochInfoConfig{
+			ID:          new(big.Int).Add(currentEpochInfo.ID, common.Big1),
+			Validators:  make([]common.Address, 0, globalConfig.ConsensusValidatorNum),
+			StartHeight: startHeight,
+			EndHeight:   new(big.Int).Add(startHeight, globalConfig.BlockPerEpoch),
+		},
+		Signers:   make([]common.Address, 0, globalConfig.ConsensusValidatorNum),
+		Voters:    make([]common.Address, 0, globalConfig.VoterValidatorNum),
+		Proposers: make([]common.Address, 0, globalConfig.ConsensusValidatorNum),
 	}
 	// get all validators
 	allValidators, err := getAllValidators(s)

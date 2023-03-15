@@ -20,11 +20,12 @@ package side_chain_manager
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -58,7 +59,10 @@ func putSideChainApply(module *contract.ModuleContract, sideChain *SideChain) er
 		return fmt.Errorf("putRegisterSideChain, sideChain.Serialization error: %v", err)
 	}
 
-	module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(SIDE_CHAIN_APPLY), chainidByte), blob)
+	err = module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(SIDE_CHAIN_APPLY), chainidByte), blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -91,7 +95,10 @@ func PutSideChain(module *contract.ModuleContract, sideChain *SideChain) error {
 		return fmt.Errorf("putSideChain, sideChain.Serialization error: %v", err)
 	}
 
-	module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(SIDE_CHAIN), chainidByte), blob)
+	err = module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(SIDE_CHAIN), chainidByte), blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -124,7 +131,10 @@ func putUpdateSideChain(module *contract.ModuleContract, sideChain *SideChain) e
 		return fmt.Errorf("putUpdateSideChain, sideChain.Serialization error: %v", err)
 	}
 
-	module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(UPDATE_SIDE_CHAIN_REQUEST), chainidByte), blob)
+	err = module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(UPDATE_SIDE_CHAIN_REQUEST), chainidByte), blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -147,7 +157,10 @@ func putQuitSideChain(module *contract.ModuleContract, chainid uint64) error {
 	contractAddr := cfg.SideChainManagerContractAddress
 	chainidByte := utils.GetUint64Bytes(chainid)
 
-	module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(QUIT_SIDE_CHAIN_REQUEST), chainidByte), chainidByte)
+	err := module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(QUIT_SIDE_CHAIN_REQUEST), chainidByte), chainidByte)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -158,7 +171,10 @@ func PutFee(module *contract.ModuleContract, chainId uint64, fee *Fee) error {
 	if err != nil {
 		return fmt.Errorf("PutFee, rlp.EncodeToBytes fee error: %v", err)
 	}
-	module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(FEE), chainIdBytes), blob)
+	err = module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(FEE), chainIdBytes), blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -188,7 +204,10 @@ func PutFeeInfo(module *contract.ModuleContract, chainId, view uint64, feeInfo *
 	if err != nil {
 		return fmt.Errorf("PutFeeInfo, rlp.EncodeToBytes fee info error: %v", err)
 	}
-	module.GetCacheDB().Put(key, blob)
+	err = module.GetCacheDB().Put(key, blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -252,7 +271,10 @@ func PutAssetBind(module *contract.ModuleContract, chainId uint64, assetBind *As
 	if err != nil {
 		return fmt.Errorf("PutAssetBind, rlp.EncodeToBytes asset bind error: %v", err)
 	}
-	module.GetCacheDB().Put(key, blob)
+	err = module.GetCacheDB().Put(key, blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

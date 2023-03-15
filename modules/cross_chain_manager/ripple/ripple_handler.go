@@ -21,6 +21,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
@@ -30,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/polynetwork/ripple-sdk/types"
 	"github.com/rubblelabs/ripple/data"
-	"math/big"
 )
 
 type RippleHandler struct {
@@ -312,7 +313,10 @@ func (this *RippleHandler) MakeTransaction(service *contract.ModuleContract, par
 	}
 
 	//store txJson info
-	PutTxJsonInfo(service, fromChainID, param.TxHash, hex.EncodeToString(raw))
+	err = PutTxJsonInfo(service, fromChainID, param.TxHash, hex.EncodeToString(raw))
+	if err != nil {
+		return fmt.Errorf("ripple MakeTransaction, PutTxJsonInfo error: %s", err)
+	}
 	return nil
 }
 

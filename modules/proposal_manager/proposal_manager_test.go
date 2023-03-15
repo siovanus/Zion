@@ -50,9 +50,7 @@ func init() {
 	InitProposalManager()
 	sdb = contract.NewTestStateDB()
 	testGenesisPeers, _ = contract.GenerateTestPeers(testGenesisNum)
-	node_manager.StoreCommunityInfo(sdb, big.NewInt(2000), common.EmptyAddress)
 	node_manager.StoreGenesisEpoch(sdb, testGenesisPeers, testGenesisPeers)
-	node_manager.StoreGenesisGlobalConfig(sdb)
 }
 
 func TestProposalManager(t *testing.T) {

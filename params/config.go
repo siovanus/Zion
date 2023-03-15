@@ -60,7 +60,7 @@ var (
 	DevnetChainID  uint64 = 60803
 
 	// zion token alias, decimal is 18
-	ZNT1, _        = new(big.Int).SetString("1000000000000000000", 10)
+	ZNT1, _ = new(big.Int).SetString("1000000000000000000", 10)
 
 	uGenesisSupply = new(big.Int).SetUint64(1e8)
 	GenesisSupply  = new(big.Int).Mul(ZNT1, uGenesisSupply)
@@ -702,4 +702,20 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsLondon:         c.IsLondon(num),
 		IsCatalyst:       c.IsCatalyst(num),
 	}
+}
+
+type EpochInfoConfig struct {
+	ID          *big.Int
+	Validators  []common.Address
+	StartHeight *big.Int
+	EndHeight   *big.Int
+}
+
+func (m *EpochInfoConfig) MemberList() []common.Address {
+	list := make([]common.Address, 0)
+	if m == nil || m.Validators == nil || len(m.Validators) == 0 {
+		return list
+	}
+	list = append(list, m.Validators...)
+	return list
 }

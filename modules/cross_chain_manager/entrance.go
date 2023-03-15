@@ -39,17 +39,7 @@ const (
 // the real gas usage of `importOutTransfer` and `replenish` are 3291750 and 727125.
 // in order to reduce the cross-chain cost, set them to be 300000 and 100000.
 var (
-	this     = cfg.ModuleContractAddrMap[cfg.ModuleCrossChain]
-	gasTable = map[string]uint64{
-		common.MethodContractName:        21000,
-		common.MethodImportOuterTransfer: 300000,
-		common.MethodBlackChain:          149625,
-		common.MethodWhiteChain:          152250,
-		common.MethodCheckDone:           57750,
-		common.MethodReplenish:           100000,
-		common.MethodMultiSignRipple:     100000,
-		common.MethodReconstructRippleTx: 300000,
-	}
+	this = cfg.ModuleContractAddrMap[cfg.ModuleCrossChain]
 )
 
 func InitCrossChainManager() {
@@ -57,8 +47,6 @@ func InitCrossChainManager() {
 }
 
 func RegisterCrossChainManagerContract(s *contract.ModuleContract) {
-	s.Prepare(common.ABI, gasTable)
-
 	s.Register(common.MethodContractName, Name)
 	s.Register(common.MethodImportOuterTransfer, ImportOuterTransfer)
 	s.Register(common.MethodBlackChain, BlackChain)
@@ -234,7 +222,10 @@ func WhiteChain(s *contract.ModuleContract) ([]byte, error) {
 		return contract.PackOutputs(common.ABI, common.MethodWhiteChain, true)
 	}
 
-	RemoveBlackChain(s, params.ChainID)
+	err = RemoveBlackChain(s, params.ChainID)
+	if err != nil {
+		return nil, fmt.Errorf("WhiteChain, RemoveBlackChain error: %v", err)
+	}
 	return contract.PackOutputs(common.ABI, common.MethodWhiteChain, true)
 }
 

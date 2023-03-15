@@ -49,21 +49,8 @@ const (
 )
 
 var (
-	this     = cfg.ModuleContractAddrMap[cfg.ModuleSideChainManager]
-	gasTable = map[string]uint64{
-		side_chain_manager_abi.MethodGetSideChain:             9751875,
-		side_chain_manager_abi.MethodRegisterSideChain:        3635625,
-		side_chain_manager_abi.MethodApproveRegisterSideChain: 7263375,
-		side_chain_manager_abi.MethodUpdateSideChain:          5599125,
-		side_chain_manager_abi.MethodApproveUpdateSideChain:   1270500,
-		side_chain_manager_abi.MethodQuitSideChain:            635250,
-		side_chain_manager_abi.MethodApproveQuitSideChain:     223125,
-		side_chain_manager_abi.MethodRegisterAsset:            10751875,
-		side_chain_manager_abi.MethodUpdateFee:                5635625,
-		side_chain_manager_abi.MethodGetFee:                   3751875,
-	}
-
-	ABI *abi.ABI
+	this = cfg.ModuleContractAddrMap[cfg.ModuleSideChainManager]
+	ABI  *abi.ABI
 )
 
 func InitSideChainManager() {
@@ -72,8 +59,6 @@ func InitSideChainManager() {
 }
 
 func RegisterSideChainManagerContract(s *contract.ModuleContract) {
-	s.Prepare(ABI, gasTable)
-
 	// s.Register(MethodContractName, Name)
 	s.Register(side_chain_manager_abi.MethodGetSideChain, GetSideChain)
 	s.Register(side_chain_manager_abi.MethodRegisterSideChain, RegisterSideChain)

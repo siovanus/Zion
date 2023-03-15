@@ -49,9 +49,7 @@ func init() {
 	node_manager.InitNodeManager()
 	sdb = contract.NewTestStateDB()
 	signers, _ = contract.GenerateTestPeers(2)
-	node_manager.StoreCommunityInfo(sdb, big.NewInt(2000), common.EmptyAddress)
 	node_manager.StoreGenesisEpoch(sdb, signers, signers)
-	node_manager.StoreGenesisGlobalConfig(sdb)
 }
 
 func testRegisterSideChainManager(t *testing.T) {
@@ -70,12 +68,12 @@ func testRegisterSideChainManager(t *testing.T) {
 	assert.Nil(t, err)
 
 	blockNumber := big.NewInt(1)
-	extra := uint64(10)
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(side_chain_manager_abi.MethodRegisterSideChain)
 	for _, input := range [][]byte{input, input1} {
 		caller := signers[0]
 		tr.Start()
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodRegisterSideChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		ret, leftOverGas, err := contractRef.ModuleCall(common.Address{}, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
 		assert.Nil(t, err)
@@ -107,12 +105,12 @@ func testApproveRegisterSideChain(t *testing.T) {
 	input1, err := contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, param)
 	assert.Nil(t, err)
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(side_chain_manager_abi.MethodApproveRegisterSideChain)
 	for _, input := range [][]byte{input, input1} {
 		caller := signers[0]
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodApproveRegisterSideChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -124,7 +122,7 @@ func testApproveRegisterSideChain(t *testing.T) {
 		assert.Equal(t, leftOverGas, extra)
 
 		caller = signers[1]
-		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodApproveRegisterSideChain]+extra, nil)
+		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err = contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -156,12 +154,12 @@ func testUpdateSideChain(t *testing.T) {
 	input1, err := contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodUpdateSideChain, param)
 	assert.Nil(t, err)
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(side_chain_manager_abi.MethodUpdateSideChain)
 	for _, input := range [][]byte{input, input1} {
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := signers[0]
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodUpdateSideChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(common.Address{}, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -188,13 +186,13 @@ func testApproveUpdateSideChain(t *testing.T) {
 	input1, err := contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodApproveUpdateSideChain, param)
 	assert.Nil(t, err)
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(side_chain_manager_abi.MethodApproveUpdateSideChain)
 	tr1 := contract.NewTimer(side_chain_manager_abi.MethodGetSideChain)
 	for i, input := range [][]byte{input, input1} {
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := signers[0]
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodApproveUpdateSideChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -206,7 +204,7 @@ func testApproveUpdateSideChain(t *testing.T) {
 		assert.Equal(t, leftOverGas, extra)
 
 		caller = signers[1]
-		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodApproveUpdateSideChain]+extra, nil)
+		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err = contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -230,7 +228,7 @@ func testApproveUpdateSideChain(t *testing.T) {
 		input, err = contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodGetSideChain, param)
 		assert.Nil(t, err)
 
-		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodGetSideChain]+extra, nil)
+		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr1.Start()
 		ret, leftOverGas, err = contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr1.Stop()
@@ -256,12 +254,12 @@ func testQuiteSideChain(t *testing.T) {
 	input1, err := contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodQuitSideChain, param)
 	assert.Nil(t, err)
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(side_chain_manager_abi.MethodQuitSideChain)
 	for _, input := range [][]byte{input, input1} {
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := signers[0]
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodQuitSideChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -287,12 +285,12 @@ func TestApproveQuiteSideChain(t *testing.T) {
 	input1, err := contract.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodApproveQuitSideChain, param)
 	assert.Nil(t, err)
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(side_chain_manager_abi.MethodApproveQuitSideChain)
 	for i, input := range [][]byte{input, input1} {
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := signers[0]
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodApproveQuitSideChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()
@@ -304,7 +302,7 @@ func TestApproveQuiteSideChain(t *testing.T) {
 		assert.Equal(t, leftOverGas, extra)
 
 		caller = signers[1]
-		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[side_chain_manager_abi.MethodApproveQuitSideChain]+extra, nil)
+		contractRef = contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err = contractRef.ModuleCall(caller, cfg.SideChainManagerContractAddress, input)
 		tr.Stop()

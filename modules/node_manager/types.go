@@ -27,6 +27,7 @@ import (
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	. "github.com/ethereum/go-ethereum/modules/go_abi/node_manager_abi"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -165,13 +166,10 @@ type UnlockingStake struct {
 }
 
 type EpochInfo struct {
-	ID          *big.Int
-	Validators  []common.Address
-	Signers     []common.Address
-	Voters      []common.Address
-	Proposers   []common.Address
-	StartHeight *big.Int
-	EndHeight   *big.Int
+	params.EpochInfoConfig
+	Signers   []common.Address
+	Voters    []common.Address
+	Proposers []common.Address
 }
 
 func (m *EpochInfo) Decode(payload []byte) error {
@@ -206,15 +204,6 @@ func (m *EpochInfo) ProposerQuorumSize() int {
 	}
 	total := len(m.Proposers)
 	return int(math.Ceil(float64(2*total) / 3))
-}
-
-func (m *EpochInfo) MemberList() []common.Address {
-	list := make([]common.Address, 0)
-	if m == nil || m.Validators == nil || len(m.Validators) == 0 {
-		return list
-	}
-	list = append(list, m.Validators...)
-	return list
 }
 
 type AccumulatedCommission struct {

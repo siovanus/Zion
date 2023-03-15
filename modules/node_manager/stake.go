@@ -20,10 +20,11 @@ package node_manager
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
-	"math/big"
 )
 
 func deposit(s *contract.ModuleContract, from common.Address, amount Dec, validator *Validator) error {
@@ -134,7 +135,10 @@ func unStake(s *contract.ModuleContract, from common.Address, amount Dec, valida
 		return fmt.Errorf("unStake, stakeInfo.Amount.Sub error: %v", err)
 	}
 	if stakeInfo.Amount.IsZero() {
-		delStakeInfo(s, from, validator.ConsensusAddress)
+		err = delStakeInfo(s, from, validator.ConsensusAddress)
+		if err != nil {
+			return err
+		}
 	} else {
 		err = setStakeInfo(s, stakeInfo)
 		if err != nil {

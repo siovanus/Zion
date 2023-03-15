@@ -51,8 +51,6 @@ func (g Genesis) MarshalJSON() ([]byte, error) {
 		}
 	}
 	enc.Governance = g.Governance
-	enc.CommunityRate = g.CommunityRate
-	enc.CommunityAddress = g.CommunityAddress
 	enc.Number = math.HexOrDecimal64(g.Number)
 	enc.GasUsed = math.HexOrDecimal64(g.GasUsed)
 	enc.ParentHash = g.ParentHash
@@ -121,14 +119,6 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'governance' for Genesis")
 	}
 	g.Governance = *dec.Governance
-	if dec.CommunityRate == nil {
-		return errors.New("missing required field 'community_rate' for Genesis")
-	}
-	g.CommunityRate = dec.CommunityRate
-	if dec.CommunityAddress == nil {
-		return errors.New("missing required field 'community_address' for Genesis")
-	}
-	g.CommunityAddress = *dec.CommunityAddress
 	if dec.Number != nil {
 		g.Number = uint64(*dec.Number)
 	}

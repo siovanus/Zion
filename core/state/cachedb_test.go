@@ -16,7 +16,7 @@ import (
 func TestNextSlot(t *testing.T) {
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 
 	raw := []byte{byte(102), byte(102), byte(85)}
 	hash := common.BytesToHash(raw)
@@ -33,7 +33,7 @@ func TestNextSlot(t *testing.T) {
 func TestCustomSet(t *testing.T) {
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 
 	addr := common.HexToAddress("0x12345")
 	key := append(addr.Bytes(), []byte("test")...)
@@ -51,7 +51,7 @@ func TestCustomSet(t *testing.T) {
 func TestSetAddress(t *testing.T) {
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 
 	addr := common.HexToAddress("0x12345")
 
@@ -88,7 +88,7 @@ func TestSetAddress(t *testing.T) {
 func TestSetHash(t *testing.T) {
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 
 	addr := common.HexToAddress("0x12345")
 
@@ -123,7 +123,7 @@ func TestSetHash(t *testing.T) {
 func TestSetBigInt(t *testing.T) {
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 
 	addr := common.HexToAddress("0x12345")
 
@@ -159,7 +159,7 @@ func TestSetBigInt(t *testing.T) {
 func TestSetBytes(t *testing.T) {
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 	addr := common.HexToAddress("0x12345")
 
 	// bytes length less than 32
@@ -213,7 +213,7 @@ func TestCacheDB(t *testing.T) {
 	// Create an empty state database
 	db := rawdb.NewMemoryDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db), nil)
-	c := (*CacheDB)(state)
+	c := NewStore(state, NewInfiniteGasMeter(), DefaultGasConfig())
 
 	// Update it with some accounts
 	for i := byte(0); i < 255; i++ {

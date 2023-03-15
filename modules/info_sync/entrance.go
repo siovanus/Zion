@@ -20,6 +20,7 @@ package info_sync
 
 import (
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/modules/cfg"
@@ -38,8 +39,6 @@ func InitInfoSync() {
 }
 
 func RegisterInfoSyncContract(s *contract.ModuleContract) {
-	s.Prepare(ABI, GasTable)
-
 	s.Register(MethodContractName, Name)
 	s.Register(MethodSyncRootInfo, SyncRootInfo)
 	s.Register(MethodReplenish, Replenish)

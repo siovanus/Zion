@@ -30,13 +30,6 @@ import (
 )
 
 var (
-	gasTable = map[string]uint64{
-		MethodName:        39375,
-		MethodTotalSupply: 23625,
-	}
-)
-
-var (
 	RewardPerBlock = params.ZNT1
 	GenesisSupply  = params.GenesisSupply
 )
@@ -49,8 +42,6 @@ func InitEconomic() {
 }
 
 func RegisterEconomicContract(s *contract.ModuleContract) {
-	s.Prepare(ABI, gasTable)
-
 	s.Register(MethodName, Name)
 	s.Register(MethodTotalSupply, TotalSupply)
 }
@@ -77,7 +68,7 @@ func Reward(s *contract.ModuleContract) ([]byte, error) {
 		return nil, nil
 	}
 
-	community, err := node_manager.GetCommunityInfoFromDB(s.StateDB())
+	community, err := node_manager.GetCommunityInfoImpl(s)
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityInfo failed, err: %v", err)
 	}

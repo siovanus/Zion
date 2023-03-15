@@ -20,10 +20,11 @@ package node_manager
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
-	"math/big"
 )
 
 const (
@@ -144,7 +145,10 @@ func withdrawStakeRewards(s *contract.ModuleContract, validator *Validator, stak
 	}
 
 	// remove stake starting info
-	delStakeStartingInfo(s, stakeInfo.StakeAddress, validator.ConsensusAddress)
+	err = delStakeStartingInfo(s, stakeInfo.StakeAddress, validator.ConsensusAddress)
+	if err != nil {
+		return Dec{nil}, err
+	}
 	return rewards, nil
 }
 

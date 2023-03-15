@@ -20,7 +20,6 @@ package testutils
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -70,16 +69,12 @@ func Genesis(validators []common.Address) (*core.Genesis, error) {
 		},
 	}
 	g.Governance = []core.GovernanceAccount{}
-	for i, v := range validators {
-		signer := common.HexToAddress(fmt.Sprintf("0x1a%d", i))
+	for _, v := range validators {
 		g.Governance = append(g.Governance, core.GovernanceAccount{
 			Validator: v,
-			Signer:    signer,
 		})
 	}
 	g.Difficulty = big.NewInt(1)
-	g.CommunityRate = big.NewInt(2000)
-	g.CommunityAddress = common.HexToAddress("0x79ad3ca3faa0F30f4A0A2839D2DaEb4Eb6B6820D")
 	extra, err := tool.EncodeGenesisExtra(validators)
 	if err != nil {
 		return nil, err

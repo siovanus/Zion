@@ -32,105 +32,146 @@ var (
 	ErrInvalidBytes = errors.New("invalid bytes")
 )
 
-type CacheDB StateDB
+type Store struct {
+	db        *StateDB
+	gasMeter  *GasMeter
+	gasConfig *GasConfig
+}
+
+func NewStore(db *StateDB, gasMeter *GasMeter, gasConfig *GasConfig) *Store {
+	return &Store{db, gasMeter, gasConfig}
+}
+
+func (s *Store) Db() *StateDB {
+	return s.db
+}
+
+func (s *Store) GasMeter() *GasMeter {
+	return s.gasMeter
+}
+
+func (s *Store) GasConfig() *GasConfig {
+	return s.gasConfig
+}
 
 // support storage for type of `Address`
-func (c *CacheDB) SetAddress(key []byte, value common.Address) error {
+func (s *Store) SetAddress(key []byte, value common.Address) error {
 	hash := common.BytesToHash(value.Bytes())
-	_, _, err := c.customSet(key, hash)
+	_, _, err := s.customSet(key, hash)
 	return err
 }
 
-func (c *CacheDB) GetAddress(key []byte) (common.Address, error) {
-	_, _, hash, err := c.customGet(key)
+func (s *Store) GetAddress(key []byte) (common.Address, error) {
+	_, _, hash, err := s.customGet(key)
 	if err != nil {
 		return common.Address{}, err
 	}
 	return common.BytesToAddress(hash.Bytes()), nil
 }
 
-func (c *CacheDB) DelAddress(key []byte) error {
-	_, _, err := c.customDel(key)
+func (s *Store) DelAddress(key []byte) error {
+	_, _, err := s.customDel(key)
 	return err
 }
 
 // support storage for type of `Hash`
-func (c *CacheDB) SetHash(key []byte, value common.Hash) error {
-	_, _, err := c.customSet(key, value)
+func (s *Store) SetHash(key []byte, value common.Hash) error {
+	_, _, err := s.customSet(key, value)
 	return err
 }
 
-func (c *CacheDB) GetHash(key []byte) (common.Hash, error) {
-	_, _, value, err := c.customGet(key)
+func (s *Store) GetHash(key []byte) (common.Hash, error) {
+	_, _, value, err := s.customGet(key)
 	return value, err
 }
 
-func (c *CacheDB) DelHash(key []byte) error {
-	_, _, err := c.customDel(key)
+func (s *Store) DelHash(key []byte) error {
+	_, _, err := s.customDel(key)
 	return err
 }
 
 // support storage for type of `big`
-func (c *CacheDB) SetBigInt(key []byte, value *big.Int) error {
+func (s *Store) SetBigInt(key []byte, value *big.Int) error {
 	if len(value.Bytes()) > common.HashLength {
 		return ErrBigLen
 	}
 	hash := common.BytesToHash(value.Bytes())
-	_, _, err := c.customSet(key, hash)
+	_, _, err := s.customSet(key, hash)
 	return err
 }
 
-func (c *CacheDB) GetBigInt(key []byte) (*big.Int, error) {
-	_, _, raw, err := c.customGet(key)
+func (s *Store) GetBigInt(key []byte) (*big.Int, error) {
+	_, _, raw, err := s.customGet(key)
 	if err != nil {
 		return nil, err
 	}
 	return new(big.Int).SetBytes(raw[:]), nil
 }
 
-func (c *CacheDB) DelBigInt(key []byte) error {
-	_, _, err := c.customDel(key)
+func (s *Store) DelBigInt(key []byte) error {
+	_, _, err := s.customDel(key)
 	return err
 }
 
-func (c *CacheDB) SetBytes(key []byte, value []byte) error {
-	c.Put(key, value)
+func (s *Store) SetBytes(key []byte, value []byte) error {
+	s.Put(key, value)
 	return nil
 }
 
-func (c *CacheDB) GetBytes(key []byte) ([]byte, error) {
-	return c.Get(key)
+func (s *Store) GetBytes(key []byte) ([]byte, error) {
+	return s.Get(key)
 }
 
 // custom functions
-func (c *CacheDB) customSet(key []byte, value common.Hash) (addr common.Address, slot common.Hash, err error) {
+func (s *Store) customSet(key []byte, value common.Hash) (addr common.Address, slot common.Hash, err error) {
 	addr, slot, err = parseKey(key)
 	if err != nil {
 		return
 	}
 
-	s := (*StateDB)(c)
-	s.SetState(addr, slot, value)
+	err = s.gasMeter.ConsumeGas(s.gasConfig.WriteCostFlat)
+	if err != nil {
+		return
+	}
+	s.db.SetState(addr, slot, value)
+
+	err = s.gasMeter.ConsumeGas(s.gasConfig.WriteCostPerByte * uint64(len(value)))
+	if err != nil {
+		return
+	}
 	return
 }
 
-func (c *CacheDB) customGet(key []byte) (addr common.Address, slot, value common.Hash, err error) {
+func (s *Store) customGet(key []byte) (addr common.Address, slot, value common.Hash, err error) {
 	addr, slot, err = parseKey(key)
 	if err != nil {
 		return
 	}
-	s := (*StateDB)(c)
-	value = s.GetState(addr, slot)
+
+	err = s.gasMeter.ConsumeGas(s.gasConfig.ReadCostFlat)
+	if err != nil {
+		return
+	}
+	value = s.db.GetState(addr, slot)
+
+	err = s.gasMeter.ConsumeGas(s.gasConfig.ReadCostPerByte * uint64(len(value)))
+	if err != nil {
+		return
+	}
 	return
 }
 
-func (c *CacheDB) customDel(key []byte) (addr common.Address, slot common.Hash, err error) {
+func (s *Store) customDel(key []byte) (addr common.Address, slot common.Hash, err error) {
 	addr, slot, err = parseKey(key)
 	if err != nil {
 		return
 	}
-	s := (*StateDB)(c)
-	s.SetState(addr, slot, common.Hash{})
+
+	err = s.gasMeter.ConsumeGas(s.gasConfig.DeleteCost)
+	if err != nil {
+		return
+	}
+	s.db.SetState(addr, slot, common.Hash{})
 	return
 }
 
@@ -143,40 +184,51 @@ func parseKey(key []byte) (addr common.Address, slot common.Hash, err error) {
 	return
 }
 
-func (c *CacheDB) Put(key []byte, value []byte) {
+func (s *Store) Put(key []byte, value []byte) error {
 	if len(key) <= common.AddressLength {
 		panic("CacheDB should only be used for native contract storage")
 	}
 
-	c.Delete(key)
+	err := s.Delete(key)
+	if err != nil {
+		return err
+	}
 
-	s := (*StateDB)(c)
-	so := s.GetOrNewStateObject(common.BytesToAddress(key[:common.AddressLength]))
+	err = s.gasMeter.ConsumeGas(s.gasConfig.WriteCostFlat)
+	if err != nil {
+		return err
+	}
+	so := s.db.GetOrNewStateObject(common.BytesToAddress(key[:common.AddressLength]))
 	if so != nil {
 		slot := Key2Slot(key[common.AddressLength:])
 		if len(value) <= common.HashLength-1 {
-			c.putValue(so, slot, value, false)
+			s.putValue(so, slot, value, false)
 			value = nil
 		} else {
-			c.putValue(so, slot, value[:common.HashLength-1], true)
+			s.putValue(so, slot, value[:common.HashLength-1], true)
 			value = value[common.HashLength-1:]
 		}
 
 		for len(value) > 0 {
-			slot = c.nextSlot(slot)
+			slot = s.nextSlot(slot)
 			if len(value) <= common.HashLength-1 {
-				c.putValue(so, slot, value, false)
+				s.putValue(so, slot, value, false)
 				break
 			} else {
-				c.putValue(so, slot, value[:common.HashLength-1], true)
+				s.putValue(so, slot, value[:common.HashLength-1], true)
 				value = value[common.HashLength-1:]
 			}
 		}
-	}
 
+		err := s.gasMeter.ConsumeGas(s.gasConfig.WriteCostPerByte * uint64(len(value)))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (c *CacheDB) putValue(so *stateObject, slot common.Hash, value []byte, more bool) {
+func (s *Store) putValue(so *stateObject, slot common.Hash, value []byte, more bool) {
 	if len(value) > common.HashLength-1 {
 		panic("value should not exceed 31")
 	}
@@ -193,9 +245,8 @@ func (c *CacheDB) putValue(so *stateObject, slot common.Hash, value []byte, more
 		value = append(padding, value...)
 	}
 
-	s := (*StateDB)(c)
 	hashValue := common.BytesToHash(value)
-	so.SetState(s.db, slot, hashValue)
+	so.SetState(s.db.db, slot, hashValue)
 }
 
 func Key2Slot(key []byte) common.Hash {
@@ -203,7 +254,7 @@ func Key2Slot(key []byte) common.Hash {
 	return common.BytesToHash(key)
 }
 
-func (c *CacheDB) nextSlot(slot common.Hash) common.Hash {
+func (s *Store) nextSlot(slot common.Hash) common.Hash {
 	slotBytes := slot.Bytes()
 	for offset := common.HashLength - 1; offset >= 0; offset-- {
 		slotBytes[offset] = slotBytes[offset] + 1
@@ -215,17 +266,20 @@ func (c *CacheDB) nextSlot(slot common.Hash) common.Hash {
 	return Key2Slot(slotBytes)
 }
 
-func (c *CacheDB) Get(key []byte) ([]byte, error) {
+func (s *Store) Get(key []byte) ([]byte, error) {
 	if len(key) <= common.AddressLength {
 		panic("CacheDB should only be used for native contract storage")
 	}
 
-	s := (*StateDB)(c)
-	so := s.getStateObject(common.BytesToAddress(key[:common.AddressLength]))
+	err := s.gasMeter.ConsumeGas(s.gasConfig.ReadCostFlat)
+	if err != nil {
+		return nil, err
+	}
+	so := s.db.getStateObject(common.BytesToAddress(key[:common.AddressLength]))
 	if so != nil {
 		var result []byte
 		slot := Key2Slot(key[common.AddressLength:])
-		value := so.GetState(s.db, slot)
+		value := so.GetState(s.db.db, slot)
 		meta := value[:][0]
 		more := meta&1 == 1
 		if more {
@@ -238,8 +292,8 @@ func (c *CacheDB) Get(key []byte) ([]byte, error) {
 		}
 
 		for more {
-			slot = c.nextSlot(slot)
-			value = so.GetState(s.db, slot)
+			slot = s.nextSlot(slot)
+			value = so.GetState(s.db.db, slot)
 			meta = value[:][0]
 			more = meta&1 == 1
 			if more {
@@ -249,29 +303,37 @@ func (c *CacheDB) Get(key []byte) ([]byte, error) {
 			}
 		}
 
+		err = s.gasMeter.ConsumeGas(s.gasConfig.ReadCostPerByte * uint64(len(result)))
+		if err != nil {
+			return nil, err
+		}
 		return result, nil
 	}
 
 	return nil, nil
 }
 
-func (c *CacheDB) Delete(key []byte) {
+func (s *Store) Delete(key []byte) error {
 	if len(key) <= common.AddressLength {
-		panic("CacheDB should only be used for native contract storage")
+		panic("CacheDB store should only be used for native contract storage")
 	}
 
-	s := (*StateDB)(c)
-	so := s.GetOrNewStateObject(common.BytesToAddress(key[:common.AddressLength]))
+	err := s.gasMeter.ConsumeGas(s.gasConfig.DeleteCost)
+	if err != nil {
+		return err
+	}
+	so := s.db.GetOrNewStateObject(common.BytesToAddress(key[:common.AddressLength]))
 	if so != nil {
 		slot := Key2Slot(key[common.AddressLength:])
-		value := so.GetState(s.db, slot)
-		so.SetState(s.db, slot, common.Hash{})
+		value := so.GetState(s.db.db, slot)
+		so.SetState(s.db.db, slot, common.Hash{})
 		more := value[:][0]&1 == 1
 		for more {
-			slot = c.nextSlot(slot)
-			value = so.GetState(s.db, slot)
-			so.SetState(s.db, slot, common.Hash{})
+			slot = s.nextSlot(slot)
+			value = so.GetState(s.db.db, slot)
+			so.SetState(s.db.db, slot, common.Hash{})
 			more = value[:][0]&1 == 1
 		}
 	}
+	return nil
 }

@@ -28,14 +28,23 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/modules/node_manager"
+	"github.com/ethereum/go-ethereum/params"
+)
+
+var (
+	// GetEpochInfo get epoch info and validators from governance
+	GetGovernanceInfo func(db *state.StateDB) (*params.EpochInfoConfig, error)
 )
 
 // FillHeader fulfill the header with validators for miner worker. there are 2 conditions:
 // * governance epoch changed on chain, use the new validators for an new epoch start header.
 // * governance epoch not changed, only set the old epoch start height in header.
 func (s *backend) FillHeader(state *state.StateDB, header *types.Header) error {
-	epoch, err := s.getGovernanceInfo(state)
+	if GetGovernanceInfo == nil {
+		types.HotstuffHeaderFillWithValidators(header, nil, 0, 0)
+		return nil
+	}
+	epoch, err := GetGovernanceInfo(state)
 	if err != nil {
 		return err
 	}
@@ -58,6 +67,9 @@ func (s *backend) FillHeader(state *state.StateDB, header *types.Header) error {
 // 2.whether the block height is the right number to change epoch.
 // return the flags and save epoch in lru cache.
 func (s *backend) CheckPoint(height uint64) (uint64, bool) {
+	if GetGovernanceInfo == nil {
+		return 0, false
+	}
 	if height <= 1 {
 		return 0, false
 	}
@@ -67,7 +79,7 @@ func (s *backend) CheckPoint(height uint64) (uint64, bool) {
 		log.Warn("CheckPoint", "get state failed", err)
 		return 0, false
 	}
-	epoch, err := s.getGovernanceInfo(state)
+	epoch, err := GetGovernanceInfo(state)
 	if err != nil {
 		log.Warn("CheckPoint", "get current epoch info, height", height, "err", err)
 		return 0, false
@@ -108,7 +120,7 @@ func (s *backend) Validators(height uint64, mining bool) hotstuff.ValidatorSet {
 
 // IsSystemTransaction used by state processor while sync block.
 func (s *backend) IsSystemTransaction(tx *types.Transaction, header *types.Header) bool {
-	if tx == nil || tx.Data() != nil || tx.To() != nil || tx.Value() != common.Big0 {
+	if tx == nil || len(tx.Data()) != 0 || *tx.To() != common.EmptyAddress || tx.Value().Uint64() != uint64(0) {
 		return false
 	}
 
@@ -122,15 +134,6 @@ func (s *backend) IsSystemTransaction(tx *types.Transaction, header *types.Heade
 	} else {
 		return true
 	}
-}
-
-// getGovernanceInfo call governance contract method and retrieve related info.
-func (s *backend) getGovernanceInfo(state *state.StateDB) (*node_manager.EpochInfo, error) {
-	epoch, err := node_manager.GetCurrentEpochInfoFromDB(state)
-	if err != nil {
-		return nil, err
-	}
-	return epoch, nil
 }
 
 // execEndBlock execute system tx at end of a block

@@ -39,14 +39,19 @@ func PutRootInfo(module *contract.ModuleContract, chainID uint64, height uint32,
 	chainIDBytes := utils.GetUint64Bytes(chainID)
 	heightBytes := utils.GetUint32Bytes(height)
 
-	module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(ROOT_INFO), chainIDBytes, heightBytes),
-		info)
+	err := module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(ROOT_INFO), chainIDBytes, heightBytes), info)
+	if err != nil {
+		return err
+	}
 	currentHeight, err := GetCurrentHeight(module, chainID)
 	if err != nil {
 		return fmt.Errorf("PutRootInfo, GetCurrentHeight error: %v", err)
 	}
 	if currentHeight < height {
-		module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(CURRENT_HEIGHT), chainIDBytes), heightBytes)
+		err := module.GetCacheDB().Put(utils.ConcatKey(contractAddr, []byte(CURRENT_HEIGHT), chainIDBytes), heightBytes)
+		if err != nil {
+			return err
+		}
 	}
 	err = NotifyPutRootInfo(module, chainID, height)
 	if err != nil {

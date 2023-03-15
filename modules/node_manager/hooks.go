@@ -20,10 +20,11 @@ package node_manager
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
-	"math/big"
 )
 
 func AfterValidatorCreated(s *contract.ModuleContract, validator *Validator) error {
@@ -70,14 +71,26 @@ func AfterValidatorRemoved(s *contract.ModuleContract, validator *Validator) err
 	}
 
 	//delete signer and proposal address
-	delSignerAddr(s, validator.SignerAddress)
-	delProposalAddr(s, validator.ProposalAddress)
+	err = delSignerAddr(s, validator.SignerAddress)
+	if err != nil {
+		return err
+	}
+	err = delProposalAddr(s, validator.ProposalAddress)
+	if err != nil {
+		return err
+	}
 
 	// delete outstanding
-	delValidatorOutstandingRewards(s, validator.ConsensusAddress)
+	err = delValidatorOutstandingRewards(s, validator.ConsensusAddress)
+	if err != nil {
+		return err
+	}
 
 	// remove commission record
-	delAccumulatedCommission(s, validator.ConsensusAddress)
+	err = delAccumulatedCommission(s, validator.ConsensusAddress)
+	if err != nil {
+		return err
+	}
 
 	validatorAccumulatedRewards, err := getValidatorAccumulatedRewards(s, validator.ConsensusAddress)
 	if err != nil {
@@ -85,10 +98,17 @@ func AfterValidatorRemoved(s *contract.ModuleContract, validator *Validator) err
 	}
 
 	// clear accumulate rewards
-	delValidatorAccumulatedRewards(s, validator.ConsensusAddress)
+	err = delValidatorAccumulatedRewards(s, validator.ConsensusAddress)
+	if err != nil {
+		return err
+	}
 
 	// clear snapshot rewards
-	delValidatorSnapshotRewards(s, validator.ConsensusAddress, validatorAccumulatedRewards.Period-1)
+	err = delValidatorSnapshotRewards(s, validator.ConsensusAddress, validatorAccumulatedRewards.Period-1)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

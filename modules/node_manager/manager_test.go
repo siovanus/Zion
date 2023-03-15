@@ -49,9 +49,7 @@ func Init() {
 	InitNodeManager()
 	sdb = contract.NewTestStateDB()
 	testGenesisPeers, _ = contract.GenerateTestPeers(testGenesisNum)
-	StoreCommunityInfo(sdb, big.NewInt(2000), common.EmptyAddress)
 	StoreGenesisEpoch(sdb, testGenesisPeers, testGenesisPeers)
-	StoreGenesisGlobalConfig(sdb)
 }
 
 func TestCheckGenesis(t *testing.T) {
@@ -122,10 +120,6 @@ func TestCheckGenesis(t *testing.T) {
 	currentEpochInfo, err = GetCurrentEpochInfoFromDB(sdb)
 	assert.Nil(t, err)
 	assert.Equal(t, currentEpochInfo.ID, big.NewInt(1))
-
-	globalConfig, err = GetGlobalConfigFromDB(sdb)
-	assert.Nil(t, err)
-	assert.Equal(t, globalConfig.BlockPerEpoch, GenesisBlockPerEpoch)
 }
 
 func TestStake(t *testing.T) {

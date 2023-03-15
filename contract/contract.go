@@ -30,6 +30,10 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
+const (
+	basicGas = uint64(21000) // minimum gas spent by transaction which failed before contract.handler, the default value is 21000 wei.
+)
+
 type (
 	RegisterHandler func(native *ModuleContract)
 	MethodHandler   func(contract *ModuleContract) ([]byte, error)
@@ -64,19 +68,10 @@ func (rc *RegisterContracts) SetEndBlockHandler(addr common.Address, ahs ...Meth
 	rc.Contracts[addr].EndBlockHandler = temp
 }
 
-// the gasUsage for the native contract transaction calculated according to the following formula:
-// *		`gasUsage = gasRatio * gasTable[methodId]`
-// the value in gas table for native tx is the max num for bench test in linux.
-const (
-	basicGas = uint64(21000) // minimum gas spent by transaction which failed before contract.handler, the default value is 21000 wei.
-	gasRatio = float64(1.0)  // gasRatio is used to adjust the final value of gasUsage.
-)
-
 type ModuleContract struct {
 	ref      *ContractRef
-	db       *state.StateDB
+	store    *state.Store
 	handlers map[string]MethodHandler // map method id to method handler
-	gasTable map[string]uint64        // map method id to gas usage
 	ab       *abiPkg.ABI
 
 	testPoint int64 // last test time
@@ -84,7 +79,7 @@ type ModuleContract struct {
 
 func NewModuleContract(db *state.StateDB, ref *ContractRef) *ModuleContract {
 	return &ModuleContract{
-		db:       db,
+		store:    state.NewStore(db, state.NewGasMeter(&ref.gasLeft), state.DefaultGasConfig()),
 		ref:      ref,
 		handlers: make(map[string]MethodHandler),
 	}
@@ -94,22 +89,12 @@ func (s *ModuleContract) ContractRef() *ContractRef {
 	return s.ref
 }
 
-func (s *ModuleContract) GetCacheDB() *state.CacheDB {
-	return (*state.CacheDB)(s.db)
+func (s *ModuleContract) GetCacheDB() *state.Store {
+	return s.store
 }
 
 func (s *ModuleContract) StateDB() *state.StateDB {
-	return s.db
-}
-
-func (s *ModuleContract) Prepare(ab *abiPkg.ABI, gasTb map[string]uint64) {
-	s.ab = ab
-	s.gasTable = make(map[string]uint64)
-	for name, gas := range gasTb {
-		id := MethodID(s.ab, name)
-		final := uint64(float64(basicGas) + float64(gas)*gasRatio)
-		s.gasTable[id] = final
-	}
+	return s.store.Db()
 }
 
 func (s *ModuleContract) Register(name string, handler MethodHandler) {
@@ -118,20 +103,16 @@ func (s *ModuleContract) Register(name string, handler MethodHandler) {
 }
 
 func (s *ModuleContract) SystemInvoke() ([]byte, error) {
-	s.ref.gasLeft -= basicGas
+	err := s.store.GasMeter().ConsumeGas(basicGas)
+	if err != nil {
+		return nil, err
+	}
 
 	// check context
 	if !s.ref.CheckContexts() {
 		return nil, fmt.Errorf("system tx context error")
 	}
 
-	// check gas usage, the min value should be `basicGas`
-	gasUsage := basicGas
-	// refund basic gas before tx get into `handler`
-	s.ref.gasLeft += basicGas
-	if gasLeft := s.ref.gasLeft; gasLeft < gasUsage {
-		return nil, fmt.Errorf("gasLeft not enough, need %d, got %d", gasUsage, gasLeft)
-	}
 	var ret []byte
 	for _, addr := range Contracts.EndBlockOrder {
 		for _, handler := range Contracts.Contracts[addr].EndBlockHandler {
@@ -147,13 +128,9 @@ func (s *ModuleContract) SystemInvoke() ([]byte, error) {
 
 // Invoke return execute ret and cost gas
 func (s *ModuleContract) Invoke() ([]byte, error) {
-
-	// pre-cost for failed tx which failed before `handler` execution.
-	if gasLeft := s.ref.gasLeft; gasLeft < basicGas {
-		s.ref.gasLeft = 0
-		return nil, fmt.Errorf("gasLeft not enough, need %d, got %d", basicGas, gasLeft)
-	} else {
-		s.ref.gasLeft -= basicGas
+	err := s.store.GasMeter().ConsumeGas(basicGas)
+	if err != nil {
+		return nil, err
 	}
 
 	// check context
@@ -181,30 +158,15 @@ func (s *ModuleContract) Invoke() ([]byte, error) {
 		return nil, fmt.Errorf("failed to find method: [%s]", methodID)
 	}
 
-	// check gas usage, the min value should be `basicGas`
-	gasUsage, ok := s.gasTable[methodID]
-	if !ok {
-		return nil, fmt.Errorf("failed to find method: [%s]", methodID)
-	}
-	if gasUsage < basicGas {
-		gasUsage = basicGas
-	}
-	// refund basic gas before tx get into `handler`
-	s.ref.gasLeft += basicGas
-	if gasLeft := s.ref.gasLeft; gasLeft < gasUsage {
-		return nil, fmt.Errorf("gasLeft not enough, need %d, got %d", gasUsage, gasLeft)
-	}
-
 	// execute transaction and cost gas
 	ret, err := handler(s)
-	s.ref.gasLeft -= gasUsage
 	return ret, err
 }
 
 func (s *ModuleContract) AddNotify(abi *abiPkg.ABI, topics []string, data ...interface{}) error {
 	var topicIDs []common.Hash
 
-	if topics == nil || len(topics) == 0 {
+	if len(topics) == 0 {
 		return fmt.Errorf("AddNotify, topics length invalid")
 	}
 

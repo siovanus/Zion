@@ -22,6 +22,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus/hotstuff/backend"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/params"
@@ -46,6 +47,12 @@ var (
 
 func init() {
 	core.RegGenesis = SetupGenesis
+	backend.GetGovernanceInfo = GetGovernanceInfo
+}
+
+func GetGovernanceInfo(db *state.StateDB) (*params.EpochInfoConfig, error) {
+	epochInfo, err := GetCurrentEpochInfoFromDB(db)
+	return &epochInfo.EpochInfoConfig, err
 }
 
 // store data in genesis block
@@ -55,66 +62,31 @@ func SetupGenesis(db *state.StateDB, genesis *core.Genesis) error {
 	signers := make([]common.Address, 0, len(data))
 	for _, v := range data {
 		peers = append(peers, v.Validator)
-		signers = append(signers, v.Signer)
-	}
-	if _, err := StoreCommunityInfo(db, genesis.CommunityRate, genesis.CommunityAddress); err != nil {
-		return err
+		signers = append(signers, v.Validator)
 	}
 	if _, err := StoreGenesisEpoch(db, peers, signers); err != nil {
 		return err
 	}
-	if err := StoreGenesisGlobalConfig(db); err != nil {
-		return err
-	}
 
 	return nil
-}
-
-func StoreCommunityInfo(s *state.StateDB, communityRate *big.Int, communityAddress common.Address) (*CommunityInfo, error) {
-	cache := (*state.CacheDB)(s)
-	communityInfo := &CommunityInfo{
-		CommunityRate:    communityRate,
-		CommunityAddress: communityAddress,
-	}
-	if err := setGenesisCommunityInfo(cache, communityInfo); err != nil {
-		return nil, err
-	}
-	return communityInfo, nil
 }
 
 func StoreGenesisEpoch(s *state.StateDB, peers []common.Address, signers []common.Address) (*EpochInfo, error) {
-	cache := (*state.CacheDB)(s)
 	epoch := &EpochInfo{
-		ID:          StartEpochID,
-		Validators:  peers,
-		Signers:     signers,
-		Voters:      signers,
-		Proposers:   signers,
-		StartHeight: new(big.Int),
-		EndHeight:   GenesisBlockPerEpoch,
+		EpochInfoConfig: params.EpochInfoConfig{
+			ID:          StartEpochID,
+			Validators:  peers,
+			StartHeight: new(big.Int),
+			EndHeight:   GenesisBlockPerEpoch,
+		},
+		Signers:   signers,
+		Voters:    signers,
+		Proposers: signers,
 	}
 
 	// store current epoch and epoch info
-	if err := setGenesisEpochInfo(cache, epoch); err != nil {
+	if err := setGenesisEpochInfo(s, epoch); err != nil {
 		return nil, err
 	}
 	return epoch, nil
-}
-
-func StoreGenesisGlobalConfig(s *state.StateDB) error {
-	cache := (*state.CacheDB)(s)
-	globalConfig := &GlobalConfig{
-		MaxCommissionChange:   GenesisMaxCommissionChange,
-		MinInitialStake:       GenesisMinInitialStake,
-		MinProposalStake:      GenesisMinProposalStake,
-		BlockPerEpoch:         GenesisBlockPerEpoch,
-		ConsensusValidatorNum: GenesisConsensusValidatorNum,
-		VoterValidatorNum:     GenesisVoterValidatorNum,
-	}
-
-	// store current epoch and epoch info
-	if err := setGenesisGlobalConfig(cache, globalConfig); err != nil {
-		return err
-	}
-	return nil
 }

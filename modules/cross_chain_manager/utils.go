@@ -2,18 +2,26 @@ package cross_chain_manager
 
 import (
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 )
 
 func PutBlackChain(module *contract.ModuleContract, chainID uint64) error {
-	module.GetCacheDB().Put(blackChainKey(chainID), utils.GetUint64Bytes(chainID))
+	err := module.GetCacheDB().Put(blackChainKey(chainID), utils.GetUint64Bytes(chainID))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func RemoveBlackChain(module *contract.ModuleContract, chainID uint64) {
-	module.GetCacheDB().Delete(blackChainKey(chainID))
+func RemoveBlackChain(module *contract.ModuleContract, chainID uint64) error {
+	err := module.GetCacheDB().Delete(blackChainKey(chainID))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func CheckIfChainBlacked(module *contract.ModuleContract, chainID uint64) (bool, error) {

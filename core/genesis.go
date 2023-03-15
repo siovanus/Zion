@@ -59,9 +59,6 @@ type Genesis struct {
 	Coinbase   common.Address      `json:"coinbase"`
 	Alloc      GenesisAlloc        `json:"alloc"      gencodec:"required"`
 	Governance GenesisGovernance   `json:"governance" gencodec:"required"`
-	// config of community pool
-	CommunityRate    *big.Int       `json:"community_rate" gencodec:"required"`
-	CommunityAddress common.Address `json:"community_address" gencodec:"required"`
 
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
@@ -100,7 +97,6 @@ type GenesisGovernance []GovernanceAccount
 
 type GovernanceAccount struct {
 	Validator common.Address `json:"validator" gencodec:"required"`
-	Signer    common.Address `json:"signer" gencodec:"required"`
 }
 
 // field type overrides for gencodec
@@ -359,7 +355,6 @@ func (g *Genesis) checkGovernance() {
 
 	for _, v := range g.Governance {
 		data[v.Validator] += 1
-		data[v.Signer] += 1
 	}
 
 	for addr, cnt := range data {
@@ -467,14 +462,12 @@ func DefaultGenesisBlock() *Genesis {
 
 func TestGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:           params.MainnetChainConfig,
-		Nonce:            66,
-		ExtraData:        hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
-		GasLimit:         5000,
-		Difficulty:       big.NewInt(17179869184),
-		Alloc:            decodePrealloc(mainnetAllocData),
-		CommunityRate:    big.NewInt(2000),
-		CommunityAddress: common.HexToAddress("0x79ad3ca3faa0F30f4A0A2839D2DaEb4Eb6B6820D"),
+		Config:     params.MainnetChainConfig,
+		Nonce:      66,
+		ExtraData:  hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
+		GasLimit:   5000,
+		Difficulty: big.NewInt(17179869184),
+		Alloc:      decodePrealloc(mainnetAllocData),
 	}
 }
 

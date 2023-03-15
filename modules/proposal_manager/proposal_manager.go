@@ -21,6 +21,8 @@ package proposal_manager
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
@@ -28,7 +30,6 @@ import (
 	. "github.com/ethereum/go-ethereum/modules/go_abi/proposal_manager_abi"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
 )
 
 const (
@@ -40,27 +41,12 @@ const (
 	MaxContentLength int = 4000
 )
 
-var (
-	gasTable = map[string]uint64{
-		MethodPropose:                  979125,
-		MethodProposeConfig:            756000,
-		MethodProposeCommunity:         693000,
-		MethodVoteProposal:             603750,
-		MethodGetProposal:              118125,
-		MethodGetProposalList:          94500,
-		MethodGetConfigProposalList:    73500,
-		MethodGetCommunityProposalList: 84000,
-	}
-)
-
 func InitProposalManager() {
 	InitABI()
 	contract.Contracts.RegisterContract(this, RegisterProposalManagerContract)
 }
 
 func RegisterProposalManagerContract(s *contract.ModuleContract) {
-	s.Prepare(ABI, gasTable)
-
 	s.Register(MethodPropose, Propose)
 	s.Register(MethodProposeConfig, ProposeConfig)
 	s.Register(MethodProposeCommunity, ProposeCommunity)
@@ -135,7 +121,10 @@ func Propose(s *contract.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Propose, setProposal error: %v", err)
 	}
-	setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+	err = setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+	if err != nil {
+		return nil, err
+	}
 
 	err = s.AddNotify(ABI, []string{PROPOSE_EVENT}, proposal.ID.String(), caller.Hex(), proposal.Stake.String(), hex.EncodeToString(params.Content))
 	if err != nil {
@@ -231,7 +220,10 @@ func ProposeConfig(s *contract.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ProposeConfig, setProposal error: %v", err)
 	}
-	setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+	err = setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+	if err != nil {
+		return nil, err
+	}
 
 	err = s.AddNotify(ABI, []string{PROPOSE_CONFIG_EVENT}, proposal.ID.String(), caller.Hex(), proposal.Stake.String(), hex.EncodeToString(params.Content))
 	if err != nil {
@@ -317,7 +309,10 @@ func ProposeCommunity(s *contract.ModuleContract) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ProposeCommunity, setProposal error: %v", err)
 	}
-	setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+	err = setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+	if err != nil {
+		return nil, err
+	}
 
 	err = s.AddNotify(ABI, []string{PROPOSE_COMMUNITY_EVENT}, proposal.ID.String(), caller.Hex(), proposal.Stake.String(), hex.EncodeToString(params.Content))
 	if err != nil {

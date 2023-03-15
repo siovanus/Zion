@@ -840,8 +840,9 @@ func (s *PublicBlockChainAPI) GetHashAtCacheDB(ctx context.Context, address comm
 		return nil, err
 	}
 
+	store := state.NewStore(stateDB, state.NewInfiniteGasMeter(), state.DefaultGasConfig())
 	concatKey := append(address[:], key[:]...)
-	value, err := (*state.CacheDB)(stateDB).GetHash(concatKey)
+	value, err := store.GetHash(concatKey)
 	if err != nil {
 		return nil, err
 	}
@@ -859,8 +860,9 @@ func (s *PublicBlockChainAPI) GetStorageAtCacheDB(ctx context.Context, address c
 		return nil, err
 	}
 
+	store := state.NewStore(stateDB, state.NewInfiniteGasMeter(), state.DefaultGasConfig())
 	concatKey := append(address[:], key[:]...)
-	value, err := (*state.CacheDB)(stateDB).GetBytes(concatKey)
+	value, err := store.GetBytes(concatKey)
 	if err != nil {
 		return nil, err
 	}

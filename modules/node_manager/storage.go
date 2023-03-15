@@ -23,13 +23,11 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
-
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var StartEpochID = common.Big1 // epoch started from 1, NOT 0!
@@ -65,7 +63,10 @@ func setAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.A
 	if err != nil {
 		return fmt.Errorf("setAccumulatedCommission, serialize accumulatedCommission error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -82,9 +83,13 @@ func getAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.A
 	return accumulatedCommission, nil
 }
 
-func delAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.Address) {
+func delAccumulatedCommission(s *contract.ModuleContract, consensusAddr common.Address) error {
 	key := accumulatedCommissionKey(consensusAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr common.Address, validatorAccumulatedRewards *ValidatorAccumulatedRewards) error {
@@ -93,7 +98,10 @@ func setValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr co
 	if err != nil {
 		return fmt.Errorf("setValidatorAccumulatedRewards, serialize validatorAccumulatedRewards error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -110,9 +118,13 @@ func getValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr co
 	return validatorAccumulatedRewards, nil
 }
 
-func delValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr common.Address) {
+func delValidatorAccumulatedRewards(s *contract.ModuleContract, consensusAddr common.Address) error {
 	key := validatorAccumulatedRewardsKey(consensusAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr common.Address, validatorOutstandingRewards *ValidatorOutstandingRewards) error {
@@ -121,7 +133,10 @@ func setValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr co
 	if err != nil {
 		return fmt.Errorf("setValidatorOutstandingRewards, serialize validatorOutstandingRewards error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -138,9 +153,13 @@ func getValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr co
 	return validatorOutstandingRewards, nil
 }
 
-func delValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr common.Address) {
+func delValidatorOutstandingRewards(s *contract.ModuleContract, consensusAddr common.Address) error {
 	key := validatorOutstandingRewardsKey(consensusAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setOutstandingRewards(s *contract.ModuleContract, outstandingRewards *OutstandingRewards) error {
@@ -149,7 +168,10 @@ func setOutstandingRewards(s *contract.ModuleContract, outstandingRewards *Outst
 	if err != nil {
 		return fmt.Errorf("setOutstandingRewards, serialize outstandingRewards error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -213,7 +235,10 @@ func setValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr commo
 	if err != nil {
 		return fmt.Errorf("setValidatorSnapshotRewards, serialize validatorSnapshotRewards error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -230,9 +255,13 @@ func getValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr commo
 	return validatorSnapshotRewards, nil
 }
 
-func delValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr common.Address, period uint64) {
+func delValidatorSnapshotRewards(s *contract.ModuleContract, consensusAddr common.Address, period uint64) error {
 	key := validatorSnapshotRewardsKey(consensusAddr, period)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address, stakeStartingInfo *StakeStartingInfo) error {
@@ -241,7 +270,10 @@ func setStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Addres
 	if err != nil {
 		return fmt.Errorf("setStakeStartingInfo, serialize stakeStartingInfo error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -258,9 +290,13 @@ func getStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Addres
 	return stakeStartingInfo, nil
 }
 
-func delStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) {
+func delStakeStartingInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) error {
 	key := stakeStartingInfoKey(stakeAddress, consensusAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func SetGlobalConfig(s *contract.ModuleContract, globalConfig *GlobalConfig) error {
@@ -272,47 +308,32 @@ func SetGlobalConfig(s *contract.ModuleContract, globalConfig *GlobalConfig) err
 	if err != nil {
 		return fmt.Errorf("setGlobalConfig, serialize globalConfig error: %v", err)
 	}
-	set(s, key, store)
-	return nil
-}
-
-func setGenesisGlobalConfig(s *state.CacheDB, globalConfig *GlobalConfig) error {
-	if globalConfig.MaxCommissionChange.Cmp(PercentDecimal) > 0 {
-		return fmt.Errorf("setGenesisGlobalConfig, MaxCommissionChange over size")
-	}
-	key := globalConfigKey()
-	store, err := rlp.EncodeToBytes(globalConfig)
+	err = set(s, key, store)
 	if err != nil {
-		return fmt.Errorf("setGenesisGlobalConfig, serialize globalConfig error: %v", err)
+		return err
 	}
-	customSet(s, key, store)
 	return nil
 }
 
 func GetGlobalConfigImpl(s *contract.ModuleContract) (*GlobalConfig, error) {
+	globalConfig := &GlobalConfig{
+		MaxCommissionChange:   GenesisMaxCommissionChange,
+		MinInitialStake:       GenesisMinInitialStake,
+		MinProposalStake:      GenesisMinProposalStake,
+		BlockPerEpoch:         GenesisBlockPerEpoch,
+		ConsensusValidatorNum: GenesisConsensusValidatorNum,
+		VoterValidatorNum:     GenesisVoterValidatorNum,
+	}
 	key := globalConfigKey()
 	store, err := get(s, key)
+	if err == ErrEof {
+		return globalConfig, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("GetGlobalConfigImpl, get store error: %v", err)
 	}
-	globalConfig := new(GlobalConfig)
 	if err := rlp.DecodeBytes(store, globalConfig); err != nil {
 		return nil, fmt.Errorf("GetGlobalConfigImpl, deserialize globalConfig error: %v", err)
-	}
-	return globalConfig, nil
-}
-
-func GetGlobalConfigFromDB(s *state.StateDB) (*GlobalConfig, error) {
-	cache := (*state.CacheDB)(s)
-
-	globalConfig := new(GlobalConfig)
-	key := globalConfigKey()
-	store, err := customGet(cache, key)
-	if err != nil {
-		return nil, fmt.Errorf("GetGlobalConfigFromDB, get store error: %v", err)
-	}
-	if err := rlp.DecodeBytes(store, globalConfig); err != nil {
-		return nil, fmt.Errorf("GetGlobalConfigFromDB, deserialize globalConfig error: %v", err)
 	}
 	return globalConfig, nil
 }
@@ -359,13 +380,20 @@ func setValidator(s *contract.ModuleContract, validator *Validator) error {
 	if err != nil {
 		return fmt.Errorf("setValidator, serialize validator error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func delValidator(s *contract.ModuleContract, consensusAddr common.Address) {
+func delValidator(s *contract.ModuleContract, consensusAddr common.Address) error {
 	key := validatorKey(consensusAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getValidator(s *contract.ModuleContract, consensusAddr common.Address) (*Validator, bool, error) {
@@ -390,13 +418,20 @@ func setSignerAddr(s *contract.ModuleContract, signerAddr common.Address) error 
 	if err != ErrEof {
 		return fmt.Errorf("signer address aleady exist")
 	}
-	set(s, key, []byte{0x01})
+	err = set(s, key, []byte{0x01})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func delSignerAddr(s *contract.ModuleContract, signerAddr common.Address) {
+func delSignerAddr(s *contract.ModuleContract, signerAddr common.Address) error {
 	key := signerAddrKey(signerAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setProposalAddr(s *contract.ModuleContract, proposalAddr common.Address) error {
@@ -405,13 +440,20 @@ func setProposalAddr(s *contract.ModuleContract, proposalAddr common.Address) er
 	if err != ErrEof {
 		return fmt.Errorf("proposal address aleady exist")
 	}
-	set(s, key, []byte{0x01})
+	err = set(s, key, []byte{0x01})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func delProposalAddr(s *contract.ModuleContract, proposalAddr common.Address) {
+func delProposalAddr(s *contract.ModuleContract, proposalAddr common.Address) error {
 	key := proposalAddrKey(proposalAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func setAllValidators(s *contract.ModuleContract, allValidators *AllValidators) error {
@@ -420,7 +462,10 @@ func setAllValidators(s *contract.ModuleContract, allValidators *AllValidators) 
 	if err != nil {
 		return fmt.Errorf("setAllValidators, serialize all validators error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -480,7 +525,10 @@ func setTotalPool(s *contract.ModuleContract, totalPool *TotalPool) error {
 	if err != nil {
 		return fmt.Errorf("setStakeInfo, serialize stake info error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -506,13 +554,20 @@ func setStakeInfo(s *contract.ModuleContract, stakeInfo *StakeInfo) error {
 	if err != nil {
 		return fmt.Errorf("setStakeInfo, serialize stake info error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func delStakeInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) {
+func delStakeInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) error {
 	key := stakeInfoKey(stakeAddress, consensusAddr)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getStakeInfo(s *contract.ModuleContract, stakeAddress common.Address, consensusAddr common.Address) (*StakeInfo, bool, error) {
@@ -572,7 +627,10 @@ func filterExpiredUnlockingInfo(s *contract.ModuleContract, stakeAddress common.
 	}
 	unlockingInfo.UnlockingStake = unlockingInfo.UnlockingStake[:j]
 	if len(unlockingInfo.UnlockingStake) == 0 {
-		delUnlockingInfo(s, stakeAddress)
+		err = delUnlockingInfo(s, stakeAddress)
+		if err != nil {
+			return Dec{nil}, err
+		}
 	} else {
 		err = setUnlockingInfo(s, unlockingInfo)
 		if err != nil {
@@ -588,13 +646,20 @@ func setUnlockingInfo(s *contract.ModuleContract, unlockingInfo *UnlockingInfo) 
 	if err != nil {
 		return fmt.Errorf("setUnlockingInfo, serialize unlock info error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func delUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) {
+func delUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) error {
 	key := unlockingInfoKey(stakeAddress)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) (*UnlockingInfo, error) {
@@ -616,9 +681,13 @@ func getUnlockingInfo(s *contract.ModuleContract, stakeAddress common.Address) (
 	return unlockingInfo, nil
 }
 
-func setCurrentEpoch(s *contract.ModuleContract, ID *big.Int) {
+func setCurrentEpoch(s *contract.ModuleContract, ID *big.Int) error {
 	key := currentEpochKey()
-	set(s, key, ID.Bytes())
+	err := set(s, key, ID.Bytes())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getCurrentEpoch(s *contract.ModuleContract) (*big.Int, error) {
@@ -632,16 +701,20 @@ func getCurrentEpoch(s *contract.ModuleContract) (*big.Int, error) {
 
 func setCurrentEpochInfo(s *contract.ModuleContract, epochInfo *EpochInfo) error {
 	// set current epoch
-	setCurrentEpoch(s, epochInfo.ID)
+	err := setCurrentEpoch(s, epochInfo.ID)
+	if err != nil {
+		return err
+	}
 	//set epoch info
-	err := setEpochInfo(s, epochInfo)
+	err = setEpochInfo(s, epochInfo)
 	if err != nil {
 		return fmt.Errorf("setCurrentEpochInfo, setEpochInfo error: %v", err)
 	}
 	return nil
 }
 
-func setGenesisEpochInfo(s *state.CacheDB, epochInfo *EpochInfo) error {
+func setGenesisEpochInfo(db *state.StateDB, epochInfo *EpochInfo) error {
+	s := state.NewStore(db, state.NewInfiniteGasMeter(), state.DefaultGasConfig())
 	// set current epoch
 	key1 := currentEpochKey()
 	customSet(s, key1, epochInfo.ID.Bytes())
@@ -651,7 +724,10 @@ func setGenesisEpochInfo(s *state.CacheDB, epochInfo *EpochInfo) error {
 	if err != nil {
 		return fmt.Errorf("setGenesisEpochInfo, serialize epoch info error: %v", err)
 	}
-	customSet(s, key2, store)
+	err = customSet(s, key2, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -667,10 +743,10 @@ func GetCurrentEpochInfoImpl(s *contract.ModuleContract) (*EpochInfo, error) {
 	return epochInfo, nil
 }
 
-func GetCurrentEpochInfoFromDB(s *state.StateDB) (*EpochInfo, error) {
-	cache := (*state.CacheDB)(s)
+func GetCurrentEpochInfoFromDB(db *state.StateDB) (*EpochInfo, error) {
+	s := state.NewStore(db, state.NewInfiniteGasMeter(), state.DefaultGasConfig())
 	key := currentEpochKey()
-	store, err := customGet(cache, key)
+	store, err := customGet(s, key)
 	if err != nil {
 		return nil, fmt.Errorf("GetCurrentEpochInfoFromDB, get key store error: %v", err)
 	}
@@ -678,7 +754,7 @@ func GetCurrentEpochInfoFromDB(s *state.StateDB) (*EpochInfo, error) {
 
 	epochInfo := new(EpochInfo)
 	key = epochInfoKey(ID)
-	store, err = customGet(cache, key)
+	store, err = customGet(s, key)
 	if err != nil {
 		return nil, fmt.Errorf("GetCurrentEpochInfoFromDB, get info store error: %v", err)
 	}
@@ -694,7 +770,10 @@ func setEpochInfo(s *contract.ModuleContract, epochInfo *EpochInfo) error {
 	if err != nil {
 		return fmt.Errorf("setEpochInfo, serialize epoch info error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -711,34 +790,6 @@ func getEpochInfo(s *contract.ModuleContract, ID *big.Int) (*EpochInfo, error) {
 	return epochInfo, nil
 }
 
-func GetEpochInfoFromDB(s *state.StateDB, ID *big.Int) (*EpochInfo, error) {
-	cache := (*state.CacheDB)(s)
-
-	epochInfo := new(EpochInfo)
-	key := epochInfoKey(ID)
-	store, err := customGet(cache, key)
-	if err != nil {
-		return nil, fmt.Errorf("GetEpochInfoFromDB, get store error: %v", err)
-	}
-	if err := rlp.DecodeBytes(store, epochInfo); err != nil {
-		return nil, fmt.Errorf("GetEpochInfoFromDB, deserialize epoch info error: %v", err)
-	}
-	return epochInfo, nil
-}
-
-func setGenesisCommunityInfo(s *state.CacheDB, communityInfo *CommunityInfo) error {
-	if communityInfo.CommunityRate.Cmp(PercentDecimal) > 0 {
-		return fmt.Errorf("setGenesisCommunityInfo, CommunityRate over size")
-	}
-	key := communityInfoKey()
-	store, err := rlp.EncodeToBytes(communityInfo)
-	if err != nil {
-		return fmt.Errorf("setCommunityInfo, serialize community info error: %v", err)
-	}
-	customSet(s, key, store)
-	return nil
-}
-
 func SetCommunityInfo(s *contract.ModuleContract, communityInfo *CommunityInfo) error {
 	if communityInfo.CommunityRate.Cmp(PercentDecimal) > 0 {
 		return fmt.Errorf("setCommunityInfo, CommunityRate over size")
@@ -748,33 +799,28 @@ func SetCommunityInfo(s *contract.ModuleContract, communityInfo *CommunityInfo) 
 	if err != nil {
 		return fmt.Errorf("setCommunityInfo, serialize community info error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func GetCommunityInfoImpl(s *contract.ModuleContract) (*CommunityInfo, error) {
-	communityInfo := new(CommunityInfo)
+	communityInfo := &CommunityInfo{
+		CommunityRate:    new(big.Int),
+		CommunityAddress: common.EmptyAddress,
+	}
 	key := communityInfoKey()
 	store, err := get(s, key)
+	if err == ErrEof {
+		return communityInfo, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("GetCommunityInfoImpl, get store error: %v", err)
 	}
 	if err := rlp.DecodeBytes(store, communityInfo); err != nil {
 		return nil, fmt.Errorf("GetCommunityInfoImpl, deserialize community info error: %v", err)
-	}
-	return communityInfo, nil
-}
-
-func GetCommunityInfoFromDB(s *state.StateDB) (*CommunityInfo, error) {
-	cache := (*state.CacheDB)(s)
-	communityInfo := new(CommunityInfo)
-	key := communityInfoKey()
-	store, err := customGet(cache, key)
-	if err != nil {
-		return nil, fmt.Errorf("GetCommunityInfoFromDB, get store error: %v", err)
-	}
-	if err := rlp.DecodeBytes(store, communityInfo); err != nil {
-		return nil, fmt.Errorf("GetCommunityInfoFromDB, deserialize community info error: %v", err)
 	}
 	return communityInfo, nil
 }
@@ -790,13 +836,20 @@ func storeSign(s *contract.ModuleContract, sign *ConsensusSign) error {
 	if err != nil {
 		return err
 	}
-	set(s, key, value)
+	err = set(s, key, value)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func delSign(s *contract.ModuleContract, hash common.Hash) {
+func delSign(s *contract.ModuleContract, hash common.Hash) error {
 	key := signKey(hash)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getSign(s *contract.ModuleContract, hash common.Hash) (*ConsensusSign, error) {
@@ -829,7 +882,10 @@ func storeSigner(s *contract.ModuleContract, hash common.Hash, signer common.Add
 	if err != nil {
 		return err
 	}
-	set(s, key, value)
+	err = set(s, key, value)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -869,9 +925,13 @@ func getSignerSize(s *contract.ModuleContract, hash common.Hash) int {
 	return len(list)
 }
 
-func clearSigner(s *contract.ModuleContract, hash common.Hash) {
+func clearSigner(s *contract.ModuleContract, hash common.Hash) error {
 	key := signerKey(hash)
-	del(s, key)
+	err := del(s, key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ====================================================================
@@ -884,16 +944,16 @@ func get(s *contract.ModuleContract, key []byte) ([]byte, error) {
 	return customGet(s.GetCacheDB(), key)
 }
 
-func set(s *contract.ModuleContract, key, value []byte) {
-	customSet(s.GetCacheDB(), key, value)
+func set(s *contract.ModuleContract, key, value []byte) error {
+	return customSet(s.GetCacheDB(), key, value)
 }
 
-func del(s *contract.ModuleContract, key []byte) {
-	customDel(s.GetCacheDB(), key)
+func del(s *contract.ModuleContract, key []byte) error {
+	return customDel(s.GetCacheDB(), key)
 }
 
-func customGet(db *state.CacheDB, key []byte) ([]byte, error) {
-	value, err := db.Get(key)
+func customGet(s *state.Store, key []byte) ([]byte, error) {
+	value, err := s.Get(key)
 	if err != nil {
 		return nil, err
 	} else if value == nil || len(value) == 0 {
@@ -903,12 +963,20 @@ func customGet(db *state.CacheDB, key []byte) ([]byte, error) {
 	}
 }
 
-func customSet(db *state.CacheDB, key, value []byte) {
-	db.Put(key, value)
+func customSet(s *state.Store, key, value []byte) error {
+	err := s.Put(key, value)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func customDel(db *state.CacheDB, key []byte) {
-	db.Delete(key)
+func customDel(s *state.Store, key []byte) error {
+	err := s.Delete(key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ====================================================================

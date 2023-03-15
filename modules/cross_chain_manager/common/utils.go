@@ -20,13 +20,13 @@ package common
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/contract"
-	"github.com/ethereum/go-ethereum/contract/utils"
-	"github.com/ethereum/go-ethereum/modules/cfg"
 	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contract"
+	"github.com/ethereum/go-ethereum/contract/utils"
+	"github.com/ethereum/go-ethereum/modules/cfg"
 )
 
 var ErrTxAlreadyImported = errors.New("tx already imported")
@@ -36,7 +36,10 @@ func Replace0x(s string) string {
 }
 
 func PutDoneTx(module *contract.ModuleContract, crossChainID []byte, chainID uint64) error {
-	module.GetCacheDB().Put(doneTxKey(chainID, crossChainID), crossChainID)
+	err := module.GetCacheDB().Put(doneTxKey(chainID, crossChainID), crossChainID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

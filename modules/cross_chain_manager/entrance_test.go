@@ -57,10 +57,7 @@ func init() {
 	side_chain_manager.InitSideChainManager()
 	InitCrossChainManager()
 	info_sync.InitInfoSync()
-
-	node_manager.StoreCommunityInfo(sdb, big.NewInt(2000), common.EmptyAddress)
 	node_manager.StoreGenesisEpoch(sdb, signers, signers)
-	node_manager.StoreGenesisGlobalConfig(sdb)
 
 	param := new(side_chain_manager.RegisterSideChainParam)
 	param.ChainID = 8
@@ -191,6 +188,7 @@ func TestImportOuterTransfer(t *testing.T) {
 	assert.Nil(t, err)
 	syncRoot(11, common.HexToHash("0bdb33c1f2e4a23a8429c61c1bd31aaccc38795655e3ef9e2baf10f6567bbe3c"))
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(scom.MethodImportOuterTransfer)
 	for _, param := range []*scom.EntranceParam{param, param1} {
 		for i := 0; i < 2; i++ {
@@ -203,9 +201,8 @@ func TestImportOuterTransfer(t *testing.T) {
 			assert.Nil(t, err)
 
 			blockNumber := big.NewInt(1)
-			extra := uint64(10)
 			caller := common.Address{}
-			contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodImportOuterTransfer]+extra, nil)
+			contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 			tr.Start()
 			ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.CrossChainManagerContractAddress, input)
 			tr.Stop()
@@ -222,9 +219,8 @@ func TestImportOuterTransfer(t *testing.T) {
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := common.Address{}
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodImportOuterTransfer]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.CrossChainManagerContractAddress, input)
 		tr.Stop()
@@ -248,15 +244,15 @@ func TestReplenish(t *testing.T) {
 		param1.TxHashes = append(param1.TxHashes, "0x74676ce6389bbb479ffc9afe720749ad28b9500ff09c7ae8f19bd1e543f8845f")
 	}
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(scom.MethodReplenish)
 	for _, param := range []*scom.ReplenishParam{param, param1} {
 		input, err := contract.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodReplenish, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := common.Address{}
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodReplenish]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.CrossChainManagerContractAddress, input)
 		tr.Stop()
@@ -276,15 +272,15 @@ func TestCheckDone(t *testing.T) {
 	param1 := new(scom.CheckDoneParam)
 	param1.CrossChainID = make([]byte, 2000)
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(scom.MethodCheckDone)
 	for _, param := range []*scom.CheckDoneParam{param, param1} {
 		input, err := contract.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodCheckDone, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := common.Address{}
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodCheckDone]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.CrossChainManagerContractAddress, input)
 		tr.Stop()
@@ -304,15 +300,15 @@ func TestWhiteChain(t *testing.T) {
 	param1 := new(scom.BlackChainParam)
 	param1.ChainID = 9
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(scom.MethodBlackChain)
 	for _, param := range []*scom.BlackChainParam{param, param1} {
 		input, err := contract.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodWhiteChain, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := signers[0]
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodWhiteChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.CrossChainManagerContractAddress, input)
 		tr.Stop()
@@ -332,15 +328,15 @@ func TestBlackChain(t *testing.T) {
 	param1 := new(scom.BlackChainParam)
 	param1.ChainID = 9
 
+	extra := uint64(2100000000)
 	tr := contract.NewTimer(scom.MethodBlackChain)
 	for _, param := range []*scom.BlackChainParam{param, param1} {
 		input, err := contract.PackMethodWithStruct(scom.ABI, cross_chain_manager_abi.MethodBlackChain, param)
 		assert.Nil(t, err)
 
 		blockNumber := big.NewInt(1)
-		extra := uint64(10)
 		caller := signers[0]
-		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, gasTable[cross_chain_manager_abi.MethodBlackChain]+extra, nil)
+		contractRef := contract.NewContractRef(sdb, caller, caller, blockNumber, common.Hash{}, extra, nil)
 		tr.Start()
 		ret, leftOverGas, err := contractRef.ModuleCall(caller, cfg.CrossChainManagerContractAddress, input)
 		tr.Stop()

@@ -37,14 +37,6 @@ var (
 	MethodGetInfo       = info_sync_abi.MethodGetInfo
 )
 
-var GasTable = map[string]uint64{
-	MethodContractName:  39375,
-	MethodGetInfoHeight: 55125,
-	MethodGetInfo:       65625,
-	MethodSyncRootInfo:  861000,
-	MethodReplenish:     65625,
-}
-
 func GetABI() *abi.ABI {
 	ab, err := abi.JSON(strings.NewReader(info_sync_abi.IInfoSyncABI))
 	if err != nil {

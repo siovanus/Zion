@@ -19,13 +19,14 @@ package ripple
 
 import (
 	"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/modules/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
-	"strings"
 )
 
 func PutMultisignInfo(module *contract.ModuleContract, id string, multisignInfo *MultisignInfo) error {
@@ -34,7 +35,10 @@ func PutMultisignInfo(module *contract.ModuleContract, id string, multisignInfo 
 	if err != nil {
 		return fmt.Errorf("PutMultisignInfo, rlp.EncodeToBytes multisignInfo error: %v", err)
 	}
-	module.GetCacheDB().Put(key, blob)
+	err = module.GetCacheDB().Put(key, blob)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -55,10 +59,14 @@ func GetMultisignInfo(module *contract.ModuleContract, id string) (*MultisignInf
 	return multisignInfo, nil
 }
 
-func PutTxJsonInfo(module *contract.ModuleContract, fromChainId uint64, txHash []byte, txJson string) {
+func PutTxJsonInfo(module *contract.ModuleContract, fromChainId uint64, txHash []byte, txJson string) error {
 	chainIdBytes := utils.GetUint64Bytes(fromChainId)
 	key := utils.ConcatKey(cfg.CrossChainManagerContractAddress, []byte(common.RIPPLE_TX_INFO), chainIdBytes, txHash)
-	module.GetCacheDB().Put(key, []byte(txJson))
+	err := module.GetCacheDB().Put(key, []byte(txJson))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetTxJsonInfo(module *contract.ModuleContract, fromChainId uint64, txHash []byte) (string, error) {

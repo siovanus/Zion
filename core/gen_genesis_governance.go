@@ -19,7 +19,6 @@ func (g GovernanceAccount) MarshalJSON() ([]byte, error) {
 	}
 	var enc GovernanceAccount
 	enc.Validator = common.UnprefixedAddress(g.Validator)
-	enc.Signer = common.UnprefixedAddress(g.Signer)
 	return json.Marshal(&enc)
 }
 
@@ -37,9 +36,5 @@ func (g *GovernanceAccount) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'validator' for GovernanceAccount")
 	}
 	g.Validator = common.Address(*dec.Validator)
-	if dec.Signer == nil {
-		return errors.New("missing required field 'signer' for GovernanceAccount")
-	}
-	g.Signer = common.Address(*dec.Signer)
 	return nil
 }

@@ -19,28 +19,20 @@
 package backend
 
 import (
-	"github.com/ethereum/go-ethereum/modules/boot"
 	"math/big"
-	"os"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/consensus/hotstuff/signer"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff"
+	"github.com/ethereum/go-ethereum/consensus/hotstuff/signer"
 	tu "github.com/ethereum/go-ethereum/consensus/hotstuff/testutils"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestMain(m *testing.M) {
-	boot.InitModuleContracts()
-	os.Exit(m.Run())
-}
 
 // go test -v github.com/ethereum/go-ethereum/consensus/hotstuff/backend -run TestGenesisBlock
 func TestGenesisBlock(t *testing.T) {

@@ -21,12 +21,13 @@ package proposal_manager
 import (
 	"errors"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/contract/utils"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/modules/node_manager"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
 )
 
 var ErrEof = errors.New("EOF")
@@ -52,9 +53,13 @@ func getProposalID(s *contract.ModuleContract) (*big.Int, error) {
 	return new(big.Int).SetBytes(store), nil
 }
 
-func setProposalID(s *contract.ModuleContract, proposalID *big.Int) {
+func setProposalID(s *contract.ModuleContract, proposalID *big.Int) error {
 	key := proposalIDKey()
-	set(s, key, proposalID.Bytes())
+	err := set(s, key, proposalID.Bytes())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getProposalList(s *contract.ModuleContract) (*ProposalList, error) {
@@ -81,7 +86,10 @@ func setProposalList(s *contract.ModuleContract, proposalList *ProposalList) err
 	if err != nil {
 		return fmt.Errorf("setProposalList, serialize proposalList error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -169,7 +177,10 @@ func setConfigProposalList(s *contract.ModuleContract, configProposalList *Confi
 	if err != nil {
 		return fmt.Errorf("setConfigProposalList, serialize config proposal list error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -244,7 +255,10 @@ func setCommunityProposalList(s *contract.ModuleContract, communityProposalList 
 	if err != nil {
 		return fmt.Errorf("setCommunityProposalList, serialize community proposal list error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -314,7 +328,10 @@ func setProposal(s *contract.ModuleContract, proposal *Proposal) error {
 	if err != nil {
 		return fmt.Errorf("setProposal, serialize proposal error: %v", err)
 	}
-	set(s, key, store)
+	err = set(s, key, store)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -328,16 +345,24 @@ func get(s *contract.ModuleContract, key []byte) ([]byte, error) {
 	return customGet(s.GetCacheDB(), key)
 }
 
-func set(s *contract.ModuleContract, key, value []byte) {
-	customSet(s.GetCacheDB(), key, value)
+func set(s *contract.ModuleContract, key, value []byte) error {
+	err := customSet(s.GetCacheDB(), key, value)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func del(s *contract.ModuleContract, key []byte) {
-	customDel(s.GetCacheDB(), key)
+func del(s *contract.ModuleContract, key []byte) error {
+	err := customDel(s.GetCacheDB(), key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func customGet(db *state.CacheDB, key []byte) ([]byte, error) {
-	value, err := db.Get(key)
+func customGet(s *state.Store, key []byte) ([]byte, error) {
+	value, err := s.Get(key)
 	if err != nil {
 		return nil, err
 	} else if value == nil || len(value) == 0 {
@@ -347,12 +372,20 @@ func customGet(db *state.CacheDB, key []byte) ([]byte, error) {
 	}
 }
 
-func customSet(db *state.CacheDB, key, value []byte) {
-	db.Put(key, value)
+func customSet(s *state.Store, key, value []byte) error {
+	err := s.Put(key, value)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func customDel(db *state.CacheDB, key []byte) {
-	db.Delete(key)
+func customDel(s *state.Store, key []byte) error {
+	err := s.Delete(key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ====================================================================

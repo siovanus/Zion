@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff"
 	"github.com/ethereum/go-ethereum/consensus/hotstuff/validator"
-	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -83,18 +82,12 @@ func (s *backend) getSystemMessage() callmsg {
 	return callmsg{
 		ethereum.CallMsg{
 			From:     cfg.SystemTxSender,
+			To:       &common.EmptyAddress,
 			Gas:      systemGas,
 			GasPrice: big.NewInt(systemGasPrice),
 			Value:    common.Big0,
 		},
 	}
-}
-
-// getSystemCaller use fixed systemCaller as contract caller, and tx hash is useless in contract call.
-func (s *backend) getSystemCaller(state *state.StateDB, height *big.Int) *contract.ContractRef {
-	caller := cfg.SystemTxSender
-	hash := common.EmptyHash
-	return contract.NewContractRef(state, caller, caller, height, hash, systemGas, nil)
 }
 
 // applyTransaction execute transaction without miner worker, and only succeed tx will be packed in block.
@@ -135,7 +128,7 @@ func (s *backend) applyTransaction(
 
 		// check tx hash
 		actualTx := sysTx
-		if actualTx.To() != nil || actualTx.Data() != nil || actualTx.Value() != common.Big0 {
+		if *actualTx.To() != common.EmptyAddress || len(actualTx.Data()) != 0 || actualTx.Value().Uint64() != uint64(0) {
 			return fmt.Errorf("error format of system tx")
 		}
 		if expectedHash := signer.Hash(expectedTx); !bytes.Equal(signer.Hash(actualTx).Bytes(), expectedHash.Bytes()) {

@@ -26,7 +26,6 @@ import (
 	"github.com/ethereum/go-ethereum/contract"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 )
@@ -277,7 +276,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}(gas, time.Now())
 	}
 
-	isModuleTx := cfg.IsModuleContract(addr)
+	isModuleTx := params.IsModuleContract(addr)
 	if isModuleTx {
 		ret, gas, err = evm.moduleCall(caller.Address(), addr, input, gas, value)
 	} else {

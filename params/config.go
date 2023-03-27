@@ -25,6 +25,25 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+var (
+	SystemTxSender        = common.HexToAddress("0x0000000000000000000100000000000000000000")
+	CoinBaseAddress       = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	ModuleContractAddrMap = make(map[string]common.Address)
+)
+
+func RegisterModuleContractAddrMap(name string, addr common.Address) {
+	ModuleContractAddrMap[name] = addr
+}
+
+func IsModuleContract(addr common.Address) bool {
+	for _, v := range ModuleContractAddrMap {
+		if v == addr {
+			return true
+		}
+	}
+	return false
+}
+
 // Genesis hashes to enforce below configs on.
 var (
 	MainnetGenesisHash = common.HexToHash("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")

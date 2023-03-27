@@ -34,7 +34,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
@@ -286,14 +285,14 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		panic(err)
 	}
 
-	// initialize zion native contract and governance parameters, and `regGenesis` should be nil in mock mode.
+	// initialize zion native contract and governance parameters
+	g.checkExtra()
+	g.checkGovernance()
+	g.mintNativeToken(statedb)
+	for _, v := range params.ModuleContractAddrMap {
+		g.createNativeContract(statedb, v)
+	}
 	if RegGenesis != nil {
-		g.checkExtra()
-		g.checkGovernance()
-		g.mintNativeToken(statedb)
-		for _, v := range cfg.ModuleContractAddrMap {
-			g.createNativeContract(statedb, v)
-		}
 		RegGenesis(statedb, g)
 	}
 
@@ -349,7 +348,7 @@ func (g *Genesis) checkExtra() {
 	}
 }
 
-// checkGovernance governance address and signer address can't be repeated
+// checkGovernance governance address can't be repeated
 func (g *Genesis) checkGovernance() {
 	data := make(map[common.Address]int)
 

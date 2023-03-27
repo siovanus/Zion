@@ -36,7 +36,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/modules/cfg"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/trie"
 )
@@ -81,7 +80,7 @@ const (
 func (s *backend) getSystemMessage() callmsg {
 	return callmsg{
 		ethereum.CallMsg{
-			From:     cfg.SystemTxSender,
+			From:     params.SystemTxSender,
 			To:       &common.EmptyAddress,
 			Gas:      systemGas,
 			GasPrice: big.NewInt(systemGasPrice),
@@ -102,7 +101,7 @@ func (s *backend) applyTransaction(
 ) (err error) {
 
 	// check msg sender
-	if msg.From() != cfg.SystemTxSender {
+	if msg.From() != params.SystemTxSender {
 		return fmt.Errorf("system tx sender invalid")
 	}
 

@@ -19,19 +19,12 @@ package ethclient
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/devfans/zion-sdk/contracts/native/governance/node_manager"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/contract/utils"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/modules/cfg"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -654,7 +647,6 @@ func TestUnmarshalHeader(t *testing.T) {
 
 	var (
 		blockNum uint64 = 1099
-		epochID  uint64 = 5
 	)
 	block, err := cli.BlockByNumber(context.Background(), new(big.Int).SetUint64(blockNum))
 	if err != nil {
@@ -680,26 +672,5 @@ func TestUnmarshalHeader(t *testing.T) {
 	t.Logf("header extra: %s", extra.Dump())
 	t.Logf("origin header json string: %s", string(originHeaderEnc))
 
-	// cache db slot
-	contractAddr := cfg.NodeManagerContractAddress
-	proofHash := node_manager.EpochProofHash(epochID)
-	cacheKey := utils.ConcatKey(contractAddr, []byte("st_proof"), proofHash.Bytes())
-	slot := state.Key2Slot(cacheKey[common.AddressLength:])
-	t.Logf("slot hex before keccak: %s", slot.Hex())
-
-	// storage key
-	key := hexutil.Encode(slot[:])
-	storageKeys := []string{key}
-	t.Logf("slot hex after keccak: %s", key)
-
-	proof, err := cli.ProofAt(context.Background(), cfg.NodeManagerContractAddress, storageKeys, new(big.Int).SetUint64(blockNum))
-	if err != nil {
-		t.Fatal(err)
-	}
-	enc, err := json.Marshal(proof)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("proof result: %s", string(enc))
 	return
 }

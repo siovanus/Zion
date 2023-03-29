@@ -1734,7 +1734,9 @@ func RegisterEthService(stack *node.Node, cfg *ethconfig.Config, moduleInitFunc 
 	}
 
 	// init different module contracts
-	moduleInitFunc()
+	if moduleInitFunc != nil {
+		moduleInitFunc()
+	}
 
 	if cfg.LightServ > 0 {
 		_, err := les.NewLesServer(stack, backend, cfg)

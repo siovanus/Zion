@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-package main
+package sub
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/pkg/reexec"
 	"github.com/ethereum/go-ethereum/inner/cmdtest"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -43,25 +41,6 @@ type testgeth struct {
 	// template variables for expect
 	Datadir   string
 	Etherbase string
-}
-
-func init() {
-	// Run the app if we've been exec'd as "geth-test" in runGeth.
-	reexec.Register("geth-test", func() {
-		if err := app.Run(os.Args); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	})
-}
-
-func TestMain(m *testing.M) {
-	// check if we have been reexec'd
-	if reexec.Init() {
-		return
-	}
-	os.Exit(m.Run())
 }
 
 // spawns geth with the given command line args. If the args don't set --datadir, the

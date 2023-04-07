@@ -97,6 +97,10 @@ func (s *ModuleContract) StateDB() *state.StateDB {
 	return s.store.Db()
 }
 
+func (s *ModuleContract) Prepare(ab *abiPkg.ABI) {
+	s.ab = ab
+}
+
 func (s *ModuleContract) Register(name string, handler MethodHandler) {
 	methodID := MethodID(s.ab, name)
 	s.handlers[methodID] = handler

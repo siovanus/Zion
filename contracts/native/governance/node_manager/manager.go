@@ -93,6 +93,7 @@ func RegisterNodeManagerContract(s *native.NativeContract) {
 	s.Register(MethodCreateValidator, CreateValidator)
 	s.Register(MethodUpdateValidator, UpdateValidator)
 	s.Register(MethodUpdateCommission, UpdateCommission)
+	s.Register(MethodLockCommissionRate, LockCommissionRate)
 	s.Register(MethodStake, Stake)
 	s.Register(MethodUnStake, UnStake)
 	s.Register(MethodWithdraw, Withdraw)
@@ -129,9 +130,6 @@ func CreateValidator(s *native.NativeContract) ([]byte, error) {
 	initStake := s.ContractRef().Value()
 	toAddress := s.ContractRef().TxTo()
 
-	if ctx.Caller != s.ContractRef().TxOrigin() {
-		return nil, fmt.Errorf("CreateValidator, contract call forbidden")
-	}
 	if toAddress != utils.NodeManagerContractAddress {
 		return nil, fmt.Errorf("CreateValidator, to address must be node manager contract address")
 	}
@@ -345,6 +343,11 @@ func UpdateCommission(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("UpdateCommission, AddNotify error: %v", err)
 	}
 	return utils.PackOutputs(ABI, MethodUpdateCommission, true)
+}
+
+func LockCommissionRate(s *native.NativeContract) ([]byte, error) {
+
+	return utils.PackOutputs(ABI, MethodLockCommissionRate, true)
 }
 
 func Stake(s *native.NativeContract) ([]byte, error) {

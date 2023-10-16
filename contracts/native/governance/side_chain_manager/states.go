@@ -28,7 +28,6 @@ import (
 )
 
 type SideChain struct {
-	Owner       common.Address
 	ChainID     uint64
 	Router      uint64
 	Name        string

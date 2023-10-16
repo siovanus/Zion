@@ -34,11 +34,12 @@ import (
 var ErrEof = errors.New("EOF")
 
 const (
-	SKP_PROPOSAL_ID             = "st_proposal_id"
-	SKP_PROPOSAL                = "st_proposal"
-	SKP_PROPOSAL_LIST           = "st_proposal_list"
-	SKP_CONFIG_PROPOSAL_LIST    = "st_config_proposal_list"
-	SKP_COMMUNITY_PROPOSAL_LIST = "st_community_proposal_list"
+	SKP_PROPOSAL_ID              = "st_proposal_id"
+	SKP_PROPOSAL                 = "st_proposal"
+	SKP_PROPOSAL_LIST            = "st_proposal_list"
+	SKP_CONFIG_PROPOSAL_LIST     = "st_config_proposal_list"
+	SKP_COMMUNITY_PROPOSAL_LIST  = "st_community_proposal_list"
+	SKP_SIDE_CHAIN_PROPOSAL_LIST = "st_side_chain_proposal_list"
 )
 
 func getProposalID(s *native.NativeContract) (*big.Int, error) {
@@ -175,10 +176,23 @@ func setConfigProposalList(s *native.NativeContract, configProposalList *ConfigP
 	return nil
 }
 
-func cleanConfigProposalList(s *native.NativeContract) error {
-	err := setConfigProposalList(s, &ConfigProposalList{make([]*big.Int, 0)})
+func removeFromConfigProposalList(s *native.NativeContract, ID *big.Int) error {
+	configProposalList, err := getConfigProposalList(s)
 	if err != nil {
-		return fmt.Errorf("cleanConfigProposalList, setConfigProposalList error: %v", err)
+		return fmt.Errorf("removeFromConfigProposalList, getConfigProposalList error: %v", err)
+	}
+
+	j := 0
+	for _, proposalID := range configProposalList.ConfigProposalList {
+		if proposalID.Cmp(ID) != 0 {
+			configProposalList.ConfigProposalList[j] = proposalID
+			j++
+		}
+	}
+	configProposalList.ConfigProposalList = configProposalList.ConfigProposalList[:j]
+	err = setConfigProposalList(s, configProposalList)
+	if err != nil {
+		return fmt.Errorf("removeFromConfigProposalList, setConfigProposalList error: %v", err)
 	}
 	return nil
 }
@@ -250,10 +264,23 @@ func setCommunityProposalList(s *native.NativeContract, communityProposalList *C
 	return nil
 }
 
-func cleanCommunityProposalList(s *native.NativeContract) error {
-	err := setCommunityProposalList(s, &CommunityProposalList{make([]*big.Int, 0)})
+func removeFromCommunityProposalList(s *native.NativeContract, ID *big.Int) error {
+	communityProposalList, err := getCommunityProposalList(s)
 	if err != nil {
-		return fmt.Errorf("cleanCommunityProposalList, setCommunityProposalList error: %v", err)
+		return fmt.Errorf("removeFromCommunityProposalList, getCommunityProposalList error: %v", err)
+	}
+
+	j := 0
+	for _, proposalID := range communityProposalList.CommunityProposalList {
+		if proposalID.Cmp(ID) != 0 {
+			communityProposalList.CommunityProposalList[j] = proposalID
+			j++
+		}
+	}
+	communityProposalList.CommunityProposalList = communityProposalList.CommunityProposalList[:j]
+	err = setCommunityProposalList(s, communityProposalList)
+	if err != nil {
+		return fmt.Errorf("removeFromCommunityProposalList, setCommunityProposalList error: %v", err)
 	}
 	return nil
 }
@@ -293,6 +320,94 @@ func removeExpiredFromCommunityProposalList(s *native.NativeContract) error {
 	err = setCommunityProposalList(s, communityProposalList)
 	if err != nil {
 		return fmt.Errorf("removeExpiredFromCommunityProposalList, setCommunityProposalList error: %v", err)
+	}
+	return nil
+}
+
+func getSideChainProposalList(s *native.NativeContract) (*SideChainProposalList, error) {
+	sideChainProposalList := &SideChainProposalList{
+		make([]*big.Int, 0),
+	}
+	key := sideChainProposalListKey()
+	store, err := get(s, key)
+	if err == ErrEof {
+		return sideChainProposalList, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getSideChainProposalList, get store error: %v", err)
+	}
+	if err := rlp.DecodeBytes(store, sideChainProposalList); err != nil {
+		return nil, fmt.Errorf("getSideChainProposalList, deserialize side chain proposal list error: %v", err)
+	}
+	return sideChainProposalList, nil
+}
+
+func setSideChainProposalList(s *native.NativeContract, sideChainProposalList *SideChainProposalList) error {
+	key := communityProposalListKey()
+	store, err := rlp.EncodeToBytes(sideChainProposalList)
+	if err != nil {
+		return fmt.Errorf("setSideChainProposalList, serialize side chain proposal list error: %v", err)
+	}
+	set(s, key, store)
+	return nil
+}
+
+func removeFromSideChainProposalList(s *native.NativeContract, ID *big.Int) error {
+	sideChainProposalList, err := getSideChainProposalList(s)
+	if err != nil {
+		return fmt.Errorf("removeFromSideChainProposalList, getSideChainProposalList error: %v", err)
+	}
+
+	j := 0
+	for _, proposalID := range sideChainProposalList.SideChainProposalList {
+		if proposalID.Cmp(ID) != 0 {
+			sideChainProposalList.SideChainProposalList[j] = proposalID
+			j++
+		}
+	}
+	sideChainProposalList.SideChainProposalList = sideChainProposalList.SideChainProposalList[:j]
+	err = setSideChainProposalList(s, sideChainProposalList)
+	if err != nil {
+		return fmt.Errorf("removeFromSideChainProposalList, setSideChainProposalList error: %v", err)
+	}
+	return nil
+}
+
+func removeExpiredFromSideChainProposalList(s *native.NativeContract) error {
+	communityInfo, err := community.GetCommunityInfoImpl(s)
+	if err != nil {
+		return fmt.Errorf("removeExpiredFromSideChainProposalList, node_manager.GetCommunityInfoImpl error: %v", err)
+	}
+
+	sideChainProposalList, err := getSideChainProposalList(s)
+	if err != nil {
+		return fmt.Errorf("removeExpiredFromSideChainProposalList, getSideChainProposalList error: %v", err)
+	}
+	if len(sideChainProposalList.SideChainProposalList) == 0 {
+		return nil
+	}
+
+	j := 0
+	for _, proposalID := range sideChainProposalList.SideChainProposalList {
+		proposal, err := getProposal(s, proposalID)
+		if err != nil {
+			return fmt.Errorf("removeExpiredFromSideChainProposalList, getProposal error: %v", err)
+		}
+		if proposal.EndHeight.Cmp(s.ContractRef().BlockHeight()) > 0 {
+			sideChainProposalList.SideChainProposalList[j] = proposalID
+			j++
+		} else {
+			// transfer token to community pool
+			err = contract.NativeTransfer(s.StateDB(), this, communityInfo.CommunityAddress, proposal.Stake)
+			if err != nil {
+				return fmt.Errorf("removeExpiredFromSideChainProposalList, utils.NativeTransfer error: %v", err)
+			}
+		}
+	}
+	sideChainProposalList.SideChainProposalList = sideChainProposalList.SideChainProposalList[:j]
+	err = setSideChainProposalList(s, sideChainProposalList)
+	if err != nil {
+		return fmt.Errorf("removeExpiredFromSideChainProposalList, setSideChainProposalList error: %v", err)
 	}
 	return nil
 }
@@ -381,4 +496,8 @@ func configProposalListKey() []byte {
 
 func communityProposalListKey() []byte {
 	return utils.ConcatKey(this, []byte(SKP_COMMUNITY_PROPOSAL_LIST))
+}
+
+func sideChainProposalListKey() []byte {
+	return utils.ConcatKey(this, []byte(SKP_SIDE_CHAIN_PROPOSAL_LIST))
 }

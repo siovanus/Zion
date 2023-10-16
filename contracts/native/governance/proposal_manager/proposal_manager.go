@@ -29,15 +29,17 @@ import (
 	. "github.com/ethereum/go-ethereum/contracts/native/go_abi/proposal_manager_abi"
 	"github.com/ethereum/go-ethereum/contracts/native/governance/community"
 	"github.com/ethereum/go-ethereum/contracts/native/governance/node_manager"
+	"github.com/ethereum/go-ethereum/contracts/native/governance/side_chain_manager"
 	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
 const (
-	PROPOSE_EVENT           = "Propose"
-	PROPOSE_CONFIG_EVENT    = "ProposeConfig"
-	PROPOSE_COMMUNITY_EVENT = "ProposeCommunity"
-	VOTE_PROPOSAL_EVENT     = "VoteProposal"
+	PROPOSE_EVENT            = "Propose"
+	PROPOSE_CONFIG_EVENT     = "ProposeConfig"
+	PROPOSE_COMMUNITY_EVENT  = "ProposeCommunity"
+	PROPOSE_SIDE_CHAIN_EVENT = "ProposeSideChain"
+	VOTE_PROPOSAL_EVENT      = "VoteProposal"
 
 	MaxContentLength int = 4000
 )
@@ -47,11 +49,13 @@ var (
 		MethodPropose:                  979125,
 		MethodProposeConfig:            756000,
 		MethodProposeCommunity:         693000,
+		MethodProposeSideChain:         693000,
 		MethodVoteProposal:             603750,
 		MethodGetProposal:              118125,
 		MethodGetProposalList:          94500,
 		MethodGetConfigProposalList:    73500,
 		MethodGetCommunityProposalList: 84000,
+		MethodGetSideChainProposalList: 84000,
 	}
 )
 
@@ -66,11 +70,13 @@ func RegisterProposalManagerContract(s *native.NativeContract) {
 	s.Register(MethodPropose, Propose)
 	s.Register(MethodProposeConfig, ProposeConfig)
 	s.Register(MethodProposeCommunity, ProposeCommunity)
+	s.Register(MethodProposeSideChain, ProposeSideChain)
 	s.Register(MethodVoteProposal, VoteProposal)
 	s.Register(MethodGetProposal, GetProposal)
 	s.Register(MethodGetProposalList, GetProposalList)
 	s.Register(MethodGetConfigProposalList, GetConfigProposalList)
 	s.Register(MethodGetCommunityProposalList, GetCommunityProposalList)
+	s.Register(MethodGetSideChainProposalList, GetSideChainProposalList)
 }
 
 func Propose(s *native.NativeContract) ([]byte, error) {
@@ -159,7 +165,7 @@ func ProposeConfig(s *native.NativeContract) ([]byte, error) {
 	}
 	globalConfig, err := node_manager.GetGlobalConfigImpl(s)
 	if err != nil {
-		return nil, fmt.Errorf("Propose, GetGlobalConfigImpl error: %v", err)
+		return nil, fmt.Errorf("ProposeConfig, GetGlobalConfigImpl error: %v", err)
 	}
 	if toAddress != utils.ProposalManagerContractAddress {
 		return nil, fmt.Errorf("ProposeConfig, to address %x must be proposal manager contract address %x", toAddress, utils.ProposalManagerContractAddress)
@@ -255,7 +261,7 @@ func ProposeCommunity(s *native.NativeContract) ([]byte, error) {
 	}
 	globalConfig, err := node_manager.GetGlobalConfigImpl(s)
 	if err != nil {
-		return nil, fmt.Errorf("Propose, GetGlobalConfigImpl error: %v", err)
+		return nil, fmt.Errorf("ProposeCommunity, GetGlobalConfigImpl error: %v", err)
 	}
 	if toAddress != utils.ProposalManagerContractAddress {
 		return nil, fmt.Errorf("ProposeCommunity, to address %x must be proposal manager contract address %x", toAddress, utils.ProposalManagerContractAddress)
@@ -279,10 +285,10 @@ func ProposeCommunity(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("ProposeCommunity, deserialize community info error: %v", err)
 	}
 	if info.CommunityRate.Sign() == -1 {
-		return nil, fmt.Errorf("UpdateCommission, communityRate is negative")
+		return nil, fmt.Errorf("ProposeCommunity, communityRate is negative")
 	}
 	if info.CommunityRate.Cmp(node_manager.PercentDecimal) == 1 {
-		return nil, fmt.Errorf("UpdateCommission, communityRate can not more than 100 percent")
+		return nil, fmt.Errorf("ProposeCommunity, communityRate can not more than 100 percent")
 	}
 
 	// remove expired proposal
@@ -323,10 +329,99 @@ func ProposeCommunity(s *native.NativeContract) ([]byte, error) {
 
 	err = s.AddNotify(ABI, []string{PROPOSE_COMMUNITY_EVENT}, proposal.ID.String(), caller.Hex(), proposal.Stake.String(), hex.EncodeToString(params.Content))
 	if err != nil {
-		return nil, fmt.Errorf("ProposeConfig, AddNotify error: %v", err)
+		return nil, fmt.Errorf("ProposeCommunity, AddNotify error: %v", err)
 	}
 
 	return utils.PackOutputs(ABI, MethodProposeCommunity, true)
+}
+
+func ProposeSideChain(s *native.NativeContract) ([]byte, error) {
+	ctx := s.ContractRef().CurrentContext()
+	height := s.ContractRef().BlockHeight()
+	caller := ctx.Caller
+	value := s.ContractRef().Value()
+	toAddress := s.ContractRef().TxTo()
+
+	if ctx.Caller != s.ContractRef().TxOrigin() {
+		return nil, fmt.Errorf("ProposeSideChain, contract call forbidden")
+	}
+	globalConfig, err := node_manager.GetGlobalConfigImpl(s)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, GetGlobalConfigImpl error: %v", err)
+	}
+	if toAddress != utils.ProposalManagerContractAddress {
+		return nil, fmt.Errorf("ProposeSideChain, to address %x must be proposal manager contract address %x", toAddress, utils.ProposalManagerContractAddress)
+	}
+	if value.Cmp(globalConfig.MinProposalStake) == -1 {
+		return nil, fmt.Errorf("ProposeSideChain, value is less than globalConfig.MinProposalStake")
+	}
+
+	params := &ProposeSideChainParam{}
+	if err := utils.UnpackMethod(ABI, MethodProposeSideChain, params, ctx.Payload); err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, unpack params error: %v", err)
+	}
+
+	if len(params.Content) > MaxContentLength {
+		return nil, fmt.Errorf("ProposeSideChain, content is more than max length")
+	}
+
+	sideChainInfo := new(side_chain_manager.SideChain)
+	err = rlp.DecodeBytes(params.Content, sideChainInfo)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, deserialize side chain info error: %v", err)
+	}
+	if len(sideChainInfo.Name) > 100 {
+		return nil, fmt.Errorf("param name too long, max is 100")
+	}
+	if len(sideChainInfo.ExtraInfo) > 1000000 {
+		return nil, fmt.Errorf("param extra info too long, max is 1000000")
+	}
+	if len(sideChainInfo.CCMCAddress) > 1000 {
+		return nil, fmt.Errorf("ccmc address info too long, max is 1000")
+	}
+
+	// remove expired proposal
+	err = removeExpiredFromSideChainProposalList(s)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, removeExpiredFromSideChainProposalList error: %v", err)
+	}
+
+	proposalID, err := getProposalID(s)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, getProposalID error: %v", err)
+	}
+	sideChainProposalList, err := getSideChainProposalList(s)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, getSideChainProposalList error: %v", err)
+	}
+	if len(sideChainProposalList.SideChainProposalList) >= ProposalListLen {
+		return nil, fmt.Errorf("ProposeSideChain, proposal is more than max length %d", ProposalListLen)
+	}
+	proposal := &Proposal{
+		ID:        proposalID,
+		Address:   ctx.Caller,
+		Type:      UpdateSideChain,
+		Content:   params.Content,
+		EndHeight: new(big.Int).Add(height, globalConfig.BlockPerEpoch),
+		Stake:     value,
+	}
+	sideChainProposalList.SideChainProposalList = append(sideChainProposalList.SideChainProposalList, proposal.ID)
+	err = setSideChainProposalList(s, sideChainProposalList)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, setSideChainProposalList error: %v", err)
+	}
+	err = setProposal(s, proposal)
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, setProposal error: %v", err)
+	}
+	setProposalID(s, new(big.Int).Add(proposalID, common.Big1))
+
+	err = s.AddNotify(ABI, []string{PROPOSE_SIDE_CHAIN_EVENT}, proposal.ID.String(), caller.Hex(), proposal.Stake.String(), hex.EncodeToString(params.Content))
+	if err != nil {
+		return nil, fmt.Errorf("ProposeSideChain, AddNotify error: %v", err)
+	}
+
+	return utils.PackOutputs(ABI, MethodProposeSideChain, true)
 }
 
 func VoteProposal(s *native.NativeContract) ([]byte, error) {
@@ -411,35 +506,10 @@ func VoteProposal(s *native.NativeContract) ([]byte, error) {
 				return nil, fmt.Errorf("VoteProposal, node_manager.SetGlobalConfig error: %v", err)
 			}
 
-			// change other config proposal tp fail
-			configProposalList, err := getConfigProposalList(s)
+			// remove from proposal list
+			err = removeFromConfigProposalList(s, params.ID)
 			if err != nil {
-				return nil, fmt.Errorf("VoteProposal, getConfigProposalList error: %v", err)
-			}
-			for _, ID := range configProposalList.ConfigProposalList {
-				if ID.Cmp(proposal.ID) != 0 {
-					p, err := getProposal(s, ID)
-					if err != nil {
-						return nil, fmt.Errorf("VoteProposal, getProposal config error: %v", err)
-					}
-					p.Status = FAIL
-					err = setProposal(s, p)
-					if err != nil {
-						return nil, fmt.Errorf("VoteProposal, setProposal config error: %v", err)
-					}
-
-					// transfer token to community pool
-					err = contract.NativeTransfer(s.StateDB(), this, communityInfo.CommunityAddress, p.Stake)
-					if err != nil {
-						return nil, fmt.Errorf("Propose, utils.NativeTransfer error: %v", err)
-					}
-				}
-			}
-
-			// remove from config proposal list
-			err = cleanConfigProposalList(s)
-			if err != nil {
-				return nil, fmt.Errorf("VoteProposal, cleanConfigProposalList error: %v", err)
+				return nil, fmt.Errorf("VoteProposal, removeFromConfigProposalList error: %v", err)
 			}
 		case UpdateCommunityInfo:
 			info := new(community.CommunityInfo)
@@ -458,35 +528,43 @@ func VoteProposal(s *native.NativeContract) ([]byte, error) {
 				return nil, fmt.Errorf("VoteProposal, node_manager.SetCommunityInfo error: %v", err)
 			}
 
-			// change other community proposal tp fail
-			communityProposalList, err := getCommunityProposalList(s)
+			// remove from proposal list
+			err = removeFromCommunityProposalList(s, params.ID)
 			if err != nil {
-				return nil, fmt.Errorf("VoteProposal, getCommunityProposalList error: %v", err)
+				return nil, fmt.Errorf("VoteProposal, removeFromCommunityProposalList error: %v", err)
 			}
-			for _, ID := range communityProposalList.CommunityProposalList {
-				if ID.Cmp(proposal.ID) != 0 {
-					p, err := getProposal(s, ID)
-					if err != nil {
-						return nil, fmt.Errorf("VoteProposal, getProposal community error: %v", err)
-					}
-					p.Status = FAIL
-					err = setProposal(s, p)
-					if err != nil {
-						return nil, fmt.Errorf("VoteProposal, setProposal community error: %v", err)
-					}
-
-					// transfer token to community pool
-					err = contract.NativeTransfer(s.StateDB(), this, communityInfo.CommunityAddress, p.Stake)
-					if err != nil {
-						return nil, fmt.Errorf("Propose, utils.NativeTransfer error: %v", err)
-					}
-				}
+		case UpdateSideChain:
+			args := new(side_chain_manager.SideChain)
+			err := rlp.DecodeBytes(proposal.Content, args)
+			if err != nil {
+				return nil, fmt.Errorf("VoteProposal, deserialize side chain params error: %v", err)
 			}
 
-			// remove from community proposal list
-			err = cleanCommunityProposalList(s)
+			sideChainInfo, err := side_chain_manager.GetSideChainObject(s, args.ChainID)
 			if err != nil {
-				return nil, fmt.Errorf("VoteProposal, cleanCommunityProposalList error: %v", err)
+				return nil, fmt.Errorf("VoteProposal, side_chain_manager.GetSideChainObject error: %v", err)
+			}
+			if args.Router != 0 {
+				sideChainInfo.Router = args.Router
+			}
+			if len(args.CCMCAddress) != 0 {
+				sideChainInfo.CCMCAddress = args.CCMCAddress
+			}
+			if args.Name != "" {
+				sideChainInfo.Name = args.Name
+			}
+			if len(args.ExtraInfo) != 0 {
+				sideChainInfo.ExtraInfo = args.ExtraInfo
+			}
+			err = side_chain_manager.PutSideChain(s, sideChainInfo)
+			if err != nil {
+				return nil, fmt.Errorf("VoteProposal, side_chain_manager.PutSideChain error: %v", err)
+			}
+
+			// remove from proposal list
+			err = removeFromSideChainProposalList(s, params.ID)
+			if err != nil {
+				return nil, fmt.Errorf("VoteProposal, removeFromSideChainProposalList error: %v", err)
 			}
 		case Normal:
 			// remove from proposal list
@@ -560,4 +638,17 @@ func GetCommunityProposalList(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("GetCommunityProposalList, serialize community proposal list error: %v", err)
 	}
 	return utils.PackOutputs(ABI, MethodGetCommunityProposalList, enc)
+}
+
+func GetSideChainProposalList(s *native.NativeContract) ([]byte, error) {
+	sideChainProposalList, err := getSideChainProposalList(s)
+	if err != nil {
+		return nil, fmt.Errorf("GetSideChainProposalList, getSideChainProposalList error: %v", err)
+	}
+
+	enc, err := rlp.EncodeToBytes(sideChainProposalList)
+	if err != nil {
+		return nil, fmt.Errorf("GetSideChainProposalList, serialize side chain proposal list error: %v", err)
+	}
+	return utils.PackOutputs(ABI, MethodGetSideChainProposalList, enc)
 }

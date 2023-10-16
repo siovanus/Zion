@@ -1,11 +1,12 @@
 package proposal_manager
 
 import (
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/ethereum/go-ethereum/contracts/native/go_abi/proposal_manager_abi"
 	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
 )
 
 type ProposalType uint8
@@ -15,6 +16,7 @@ const (
 	Normal              ProposalType = 0
 	UpdateGlobalConfig  ProposalType = 1
 	UpdateCommunityInfo ProposalType = 2
+	UpdateSideChain     ProposalType = 3
 
 	NOTPASS Status = 0
 	PASS    Status = 1
@@ -60,6 +62,20 @@ func (m *CommunityProposalList) Decode(payload []byte) error {
 		ProposalList []byte
 	}
 	if err := utils.UnpackOutputs(ABI, MethodGetCommunityProposalList, &data, payload); err != nil {
+		return err
+	}
+	return rlp.DecodeBytes(data.ProposalList, m)
+}
+
+type SideChainProposalList struct {
+	SideChainProposalList []*big.Int
+}
+
+func (m *SideChainProposalList) Decode(payload []byte) error {
+	var data struct {
+		ProposalList []byte
+	}
+	if err := utils.UnpackOutputs(ABI, MethodGetSideChainProposalList, &data, payload); err != nil {
 		return err
 	}
 	return rlp.DecodeBytes(data.ProposalList, m)

@@ -20,11 +20,12 @@ package proposal_manager
 
 import (
 	"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	. "github.com/ethereum/go-ethereum/contracts/native/go_abi/proposal_manager_abi"
 	"github.com/ethereum/go-ethereum/contracts/native/utils"
-	"math/big"
-	"strings"
 )
 
 const contractName = "proposal manager"
@@ -64,6 +65,14 @@ type ProposeCommunityParam struct {
 
 func (m *ProposeCommunityParam) Encode() ([]byte, error) {
 	return utils.PackMethodWithStruct(ABI, MethodProposeCommunity, m)
+}
+
+type ProposeSideChainParam struct {
+	Content []byte
+}
+
+func (m *ProposeSideChainParam) Encode() ([]byte, error) {
+	return utils.PackMethodWithStruct(ABI, MethodProposeSideChain, m)
 }
 
 type VoteProposalParam struct {

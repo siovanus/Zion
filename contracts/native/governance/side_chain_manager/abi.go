@@ -20,22 +20,14 @@ package side_chain_manager
 
 import (
 	"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/contracts/native/go_abi/side_chain_manager_abi"
 	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
-	"strings"
-)
-
-var (
-	EventRegisterSideChain        = side_chain_manager_abi.EventRegisterSideChain
-	EventApproveRegisterSideChain = side_chain_manager_abi.EventApproveRegisterSideChain
-	EventUpdateSideChain          = side_chain_manager_abi.EventUpdateSideChain
-	EventApproveUpdateSideChain   = side_chain_manager_abi.EventApproveUpdateSideChain
-	EventQuitSideChain            = side_chain_manager_abi.EventQuitSideChain
-	EventApproveQuitSideChain     = side_chain_manager_abi.EventApproveQuitSideChain
 )
 
 func GetABI() *abi.ABI {
@@ -44,18 +36,6 @@ func GetABI() *abi.ABI {
 		panic(fmt.Sprintf("failed to load abi json string: [%v]", err))
 	}
 	return &ab
-}
-
-type RegisterSideChainParam struct {
-	ChainID     uint64
-	Router      uint64
-	Name        string
-	CCMCAddress []byte
-	ExtraInfo   []byte
-}
-
-func (m *RegisterSideChainParam) Encode() ([]byte, error) {
-	return utils.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodRegisterSideChain, m)
 }
 
 type ChainIDParam struct {
@@ -73,7 +53,7 @@ func (m *UpdateFeeParam) Encode() ([]byte, error) {
 	return utils.PackMethodWithStruct(ABI, side_chain_manager_abi.MethodUpdateFee, m)
 }
 
-//Digest Digest calculate the hash of param input
+// Digest Digest calculate the hash of param input
 func (m *UpdateFeeParam) Digest() ([]byte, error) {
 	input := &UpdateFeeParam{
 		ChainID: m.ChainID,

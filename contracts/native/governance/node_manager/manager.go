@@ -93,7 +93,6 @@ func RegisterNodeManagerContract(s *native.NativeContract) {
 	s.Register(MethodCreateValidator, CreateValidator)
 	s.Register(MethodUpdateValidator, UpdateValidator)
 	s.Register(MethodUpdateCommission, UpdateCommission)
-	s.Register(MethodLockCommissionRate, LockCommissionRate)
 	s.Register(MethodStake, Stake)
 	s.Register(MethodUnStake, UnStake)
 	s.Register(MethodWithdraw, Withdraw)
@@ -162,6 +161,11 @@ func CreateValidator(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("CreateValidator, commission can not greater than 100 percent")
 	}
 
+	// check commission lock epoch
+	if params.CommissionLockEpoch.Sign() <= 0 {
+		params.CommissionLockEpoch = big.NewInt(1)
+	}
+
 	// check desc
 	if len(params.Desc) > MaxDescLength {
 		return nil, fmt.Errorf("CreateValidator, desc length more than limit %d", MaxDescLength)
@@ -188,7 +192,7 @@ func CreateValidator(s *native.NativeContract) ([]byte, error) {
 		ConsensusAddress: params.ConsensusAddress,
 		SignerAddress:    params.SignerAddress,
 		ProposalAddress:  params.ProposalAddress,
-		Commission:       &Commission{Rate: utils.NewDecFromBigInt(params.Commission), UpdateHeight: height},
+		Commission:       &Commission{Rate: utils.NewDecFromBigInt(params.Commission), UnlockHeight: new(big.Int).Add(height, new(big.Int).Mul(params.CommissionLockEpoch, globalConfig.BlockPerEpoch))},
 		Status:           Unlock,
 		Jailed:           false,
 		UnlockHeight:     new(big.Int),
@@ -315,6 +319,10 @@ func UpdateCommission(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("UpdateCommission, GetGlobalConfig error: %v", err)
 	}
 
+	// check commission lock epoch
+	if params.CommissionLockEpoch.Sign() <= 0 {
+		params.CommissionLockEpoch = big.NewInt(1)
+	}
 	// check commission
 	if params.Commission.Sign() == -1 {
 		return nil, fmt.Errorf("UpdateCommission, commission must be positive")
@@ -327,11 +335,12 @@ func UpdateCommission(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("UpdateCommission, commission change can not greater than globalConfig.MaxCommissionChange: %s",
 			globalConfig.MaxCommissionChange.String())
 	}
-	if height.Cmp(new(big.Int).Add(validator.Commission.UpdateHeight, globalConfig.BlockPerEpoch)) < 0 {
-		return nil, fmt.Errorf("UpdateCommission, commission can not changed in one epoch twice")
+	// check unlock height
+	if height.Cmp(validator.Commission.UnlockHeight) < 0 {
+		return nil, fmt.Errorf("UpdateCommission, commission are locked")
 	}
 
-	validator.Commission = &Commission{Rate: utils.NewDecFromBigInt(params.Commission), UpdateHeight: height}
+	validator.Commission = &Commission{Rate: utils.NewDecFromBigInt(params.Commission), UnlockHeight: new(big.Int).Add(height, new(big.Int).Mul(params.CommissionLockEpoch, globalConfig.BlockPerEpoch))}
 
 	err = setValidator(s, validator)
 	if err != nil {
@@ -343,11 +352,6 @@ func UpdateCommission(s *native.NativeContract) ([]byte, error) {
 		return nil, fmt.Errorf("UpdateCommission, AddNotify error: %v", err)
 	}
 	return utils.PackOutputs(ABI, MethodUpdateCommission, true)
-}
-
-func LockCommissionRate(s *native.NativeContract) ([]byte, error) {
-
-	return utils.PackOutputs(ABI, MethodLockCommissionRate, true)
 }
 
 func Stake(s *native.NativeContract) ([]byte, error) {

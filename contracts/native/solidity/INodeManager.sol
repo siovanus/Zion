@@ -1,9 +1,9 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 interface INodeManager {
-    function createValidator(address consensusAddress, address signerAddress, address proposalAddress, int commission, string calldata desc) external returns(bool success);
+    function createValidator(address consensusAddress, address signerAddress, address proposalAddress, int commission, int commissionLockEpoch, string calldata desc) external returns(bool success);
     function updateValidator(address consensusAddress, address signerAddress, address proposalAddress, string calldata desc) external returns(bool success);
-    function updateCommission(address consensusAddress, int commission) external returns(bool success);
+    function updateCommission(address consensusAddress, int commission, int commissionLockEpoch) external returns(bool success);
     function stake(address consensusAddress) external returns(bool success);
     function unStake(address consensusAddress, int amount) external returns(bool success);
     function withdraw() external returns(bool success);

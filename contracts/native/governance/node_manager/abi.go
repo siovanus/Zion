@@ -20,12 +20,13 @@ package node_manager
 
 import (
 	"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/ethereum/go-ethereum/contracts/native/go_abi/node_manager_abi"
 	"github.com/ethereum/go-ethereum/contracts/native/utils"
-	"math/big"
-	"strings"
 )
 
 const contractName = "node manager"
@@ -44,11 +45,12 @@ var (
 )
 
 type CreateValidatorParam struct {
-	ConsensusAddress common.Address
-	SignerAddress    common.Address
-	ProposalAddress  common.Address
-	Commission       *big.Int
-	Desc             string
+	ConsensusAddress    common.Address
+	SignerAddress       common.Address
+	ProposalAddress     common.Address
+	Commission          *big.Int
+	CommissionLockEpoch *big.Int
+	Desc                string
 }
 
 func (m *CreateValidatorParam) Encode() ([]byte, error) {
@@ -67,8 +69,9 @@ func (m *UpdateValidatorParam) Encode() ([]byte, error) {
 }
 
 type UpdateCommissionParam struct {
-	ConsensusAddress common.Address
-	Commission       *big.Int
+	ConsensusAddress    common.Address
+	Commission          *big.Int
+	CommissionLockEpoch *big.Int
 }
 
 func (m *UpdateCommissionParam) Encode() ([]byte, error) {

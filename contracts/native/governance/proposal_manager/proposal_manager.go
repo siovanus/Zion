@@ -544,6 +544,9 @@ func VoteProposal(s *native.NativeContract) ([]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("VoteProposal, side_chain_manager.GetSideChainObject error: %v", err)
 			}
+			if sideChainInfo == nil {
+				sideChainInfo = &side_chain_manager.SideChain{ChainID: args.ChainID}
+			}
 			if args.Router != 0 {
 				sideChainInfo.Router = args.Router
 			}

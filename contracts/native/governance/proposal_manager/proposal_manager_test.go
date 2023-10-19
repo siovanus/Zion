@@ -232,7 +232,7 @@ func TestProposalManager(t *testing.T) {
 	proposal3 := new(Proposal)
 	err = proposal3.Decode(ret3)
 	assert.Nil(t, err)
-	assert.Equal(t, proposal3.Status, FAIL)
+	assert.Equal(t, proposal3.Status, NOTPASS)
 	param12 := new(GetProposalParam)
 	param12.ID = new(big.Int).SetUint64(40)
 	assert.Nil(t, err)
@@ -254,7 +254,7 @@ func TestProposalManager(t *testing.T) {
 	proposal5 := new(Proposal)
 	err = proposal5.Decode(ret8)
 	assert.Nil(t, err)
-	assert.Equal(t, proposal5.Status, FAIL)
+	assert.Equal(t, proposal5.Status, NOTPASS)
 
 	// check
 	globalConfig, err = node_manager.GetGlobalConfigImpl(c)
@@ -263,6 +263,6 @@ func TestProposalManager(t *testing.T) {
 	communityInfo, err = community.GetCommunityInfoImpl(c)
 	assert.Nil(t, err)
 	assert.Equal(t, communityInfo.CommunityRate, big.NewInt(1000))
-	assert.Equal(t, sdb.GetBalance(common.EmptyAddress), new(big.Int).Mul(big.NewInt(9981000), params.ZNT1))
-	assert.Equal(t, sdb.GetBalance(communityInfo.CommunityAddress), new(big.Int).Mul(big.NewInt(9981000), params.ZNT1))
+	assert.Equal(t, sdb.GetBalance(common.EmptyAddress), new(big.Int).Mul(big.NewInt(9943000), params.ZNT1))
+	assert.Equal(t, sdb.GetBalance(communityInfo.CommunityAddress), new(big.Int).Mul(big.NewInt(9943000), params.ZNT1))
 }

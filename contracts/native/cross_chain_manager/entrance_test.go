@@ -30,15 +30,17 @@ import (
 	"github.com/ethereum/go-ethereum/contracts/native"
 	scom "github.com/ethereum/go-ethereum/contracts/native/cross_chain_manager/common"
 	"github.com/ethereum/go-ethereum/contracts/native/go_abi/cross_chain_manager_abi"
-	"github.com/ethereum/go-ethereum/contracts/native/go_abi/side_chain_manager_abi"
+	"github.com/ethereum/go-ethereum/contracts/native/go_abi/proposal_manager_abi"
 	"github.com/ethereum/go-ethereum/contracts/native/governance/community"
 	"github.com/ethereum/go-ethereum/contracts/native/governance/node_manager"
+	"github.com/ethereum/go-ethereum/contracts/native/governance/proposal_manager"
 	"github.com/ethereum/go-ethereum/contracts/native/governance/side_chain_manager"
 	"github.com/ethereum/go-ethereum/contracts/native/info_sync"
 	"github.com/ethereum/go-ethereum/contracts/native/utils"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,6 +58,7 @@ func init() {
 
 	node_manager.InitNodeManager()
 	side_chain_manager.InitSideChainManager()
+	proposal_manager.InitProposalManager()
 	InitCrossChainManager()
 	info_sync.InitInfoSync()
 
@@ -63,67 +66,108 @@ func init() {
 	node_manager.StoreGenesisEpoch(sdb, signers, signers)
 	node_manager.StoreGenesisGlobalConfig(sdb)
 
-	param := new(side_chain_manager.RegisterSideChainParam)
-	param.ChainID = 8
-	param.Name = "mychain"
-	param.Router = 1
+	sdb.SetBalance(signers[0], new(big.Int).Mul(big.NewInt(100000000), params.ZNT1))
+	sdb.SetBalance(signers[1], new(big.Int).Mul(big.NewInt(100000000), params.ZNT1))
+	sdb.SetBalance(utils.ProposalManagerContractAddress, new(big.Int).Mul(big.NewInt(100000000), params.ZNT1))
 
-	param1 := new(side_chain_manager.RegisterSideChainParam)
-	param1.ChainID = 79
-	param1.Name = strings.Repeat("1", 100)
-	param1.ExtraInfo = make([]byte, 1000000)
-	param1.CCMCAddress = make([]byte, 1000)
-	param1.Router = 1
+	var err error
+	sideChain := new(side_chain_manager.SideChain)
+	sideChain.ChainID = 8
+	sideChain.Name = "mychain"
+	sideChain.Router = 1
+	param := new(proposal_manager.ProposeSideChainParam)
+	param.Content, err = rlp.EncodeToBytes(sideChain)
+	if err != nil {
+		panic(err)
+	}
+
+	sideChain1 := new(side_chain_manager.SideChain)
+	sideChain1.ChainID = 79
+	sideChain1.Name = strings.Repeat("1", 100)
+	sideChain1.ExtraInfo = make([]byte, 2000)
+	sideChain1.CCMCAddress = make([]byte, 1000)
+	sideChain1.Router = 1
+	param1 := new(proposal_manager.ProposeSideChainParam)
+	param1.Content, err = rlp.EncodeToBytes(sideChain1)
+	if err != nil {
+		panic(err)
+	}
 
 	ccd := common.HexToAddress("0xdedace1809079e241234d546e44517f31b57ab8f")
-	param2 := new(side_chain_manager.RegisterSideChainParam)
-	param2.ChainID = 10
-	param2.Router = 2
-	param2.Name = "chain10"
-	param2.CCMCAddress = ccd.Bytes()
+	sideChain2 := new(side_chain_manager.SideChain)
+	sideChain2.ChainID = 10
+	sideChain2.Router = 2
+	sideChain2.Name = "chain10"
+	sideChain2.CCMCAddress = ccd.Bytes()
+	param2 := new(proposal_manager.ProposeSideChainParam)
+	param2.Content, err = rlp.EncodeToBytes(sideChain2)
+	if err != nil {
+		panic(err)
+	}
 
-	param3 := new(side_chain_manager.RegisterSideChainParam)
-	param3.ChainID = 11
-	param3.Router = 2
-	param3.Name = strings.Repeat("1", 100)
-	param3.ExtraInfo = make([]byte, 1000000)
-	param3.CCMCAddress = ccd.Bytes()
+	sideChain3 := new(side_chain_manager.SideChain)
+	sideChain3.ChainID = 11
+	sideChain3.Router = 2
+	sideChain3.Name = strings.Repeat("1", 100)
+	sideChain3.ExtraInfo = make([]byte, 3000)
+	sideChain3.CCMCAddress = ccd.Bytes()
+	param3 := new(proposal_manager.ProposeSideChainParam)
+	param3.Content, err = rlp.EncodeToBytes(sideChain3)
+	if err != nil {
+		panic(err)
+	}
 
-	param4 := *param3
-	param4.ChainID = 2
+	sideChain4 := new(side_chain_manager.SideChain)
+	sideChain4.ChainID = 2
+	sideChain4.Router = 2
+	sideChain4.Name = strings.Repeat("1", 100)
+	sideChain4.ExtraInfo = make([]byte, 3000)
+	sideChain4.CCMCAddress = ccd.Bytes()
+	param4 := proposal_manager.ProposeSideChainParam{}
+	param4.Content, err = rlp.EncodeToBytes(sideChain4)
+	if err != nil {
+		panic(err)
+	}
 
-	for _, param := range []*side_chain_manager.RegisterSideChainParam{param, param1, param2, param3, &param4} {
-		input, err := utils.PackMethodWithStruct(side_chain_manager.ABI, side_chain_manager_abi.MethodRegisterSideChain, param)
+	for i, param := range []*proposal_manager.ProposeSideChainParam{param, param1, param2, param3, &param4} {
+		input, err := utils.PackMethodWithStruct(proposal_manager.ABI, proposal_manager_abi.MethodProposeSideChain, param)
 		if err != nil {
 			panic(err)
 		}
 		caller := signers[0]
 		contractRef := native.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
-		_, _, err = contractRef.NativeCall(caller, utils.SideChainManagerContractAddress, input)
+		contractRef.SetTo(utils.ProposalManagerContractAddress)
+		contractRef.SetValue(new(big.Int).Mul(big.NewInt(1000), params.ZNT1))
+		_, _, err = contractRef.NativeCall(caller, utils.ProposalManagerContractAddress, input)
 		if err != nil {
 			panic(err)
 		}
-		p := new(side_chain_manager.ChainIDParam)
-		p.ChainID = param.ChainID
+		p := new(proposal_manager.VoteProposalParam)
+		p.ID = big.NewInt(int64(i))
 
-		input, err = utils.PackMethodWithStruct(side_chain_manager.ABI, side_chain_manager_abi.MethodApproveRegisterSideChain, p)
+		input, err = utils.PackMethodWithStruct(proposal_manager.ABI, proposal_manager_abi.MethodVoteProposal, p)
 		if err != nil {
 			panic(err)
 		}
 		contractRef = native.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
-		_, _, err = contractRef.NativeCall(caller, utils.SideChainManagerContractAddress, input)
+		_, _, err = contractRef.NativeCall(caller, utils.ProposalManagerContractAddress, input)
 		if err != nil {
 			panic(err)
 		}
 		caller = signers[1]
 		contractRef = native.NewContractRef(sdb, caller, caller, big.NewInt(1), common.Hash{}, 10000000, nil)
-		_, _, err = contractRef.NativeCall(caller, utils.SideChainManagerContractAddress, input)
+		_, _, err = contractRef.NativeCall(caller, utils.ProposalManagerContractAddress, input)
 		if err != nil {
 			panic(err)
 		}
 
+		sideChainInfo := new(side_chain_manager.SideChain)
+		err = rlp.DecodeBytes(param.Content, sideChainInfo)
+		if err != nil {
+			panic(err)
+		}
 		contract := native.NewNativeContract(sdb, contractRef)
-		sideChain, err := side_chain_manager.GetSideChainObject(contract, param.ChainID)
+		sideChain, err := side_chain_manager.GetSideChainObject(contract, sideChainInfo.ChainID)
 		if err != nil {
 			panic(err)
 		}
